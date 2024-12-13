@@ -2,6 +2,8 @@
 
 A real-time cryptocurrency trading analysis platform built with Next.js that provides advanced pattern detection, trendline analysis, and trading pressure indicators for the Hyperliquid exchange.
 
+![Trading Analysis Platform](screenshot.png)
+
 ## Features
 
 - Real-time price and trading data visualization
