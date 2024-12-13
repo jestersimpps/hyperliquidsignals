@@ -5,7 +5,11 @@ export class HyperliquidAPI {
 
   private async post(endpoint: string, data: any): Promise<any> {
     try {
-      const response = await axios.post(endpoint, data);
+      const response = await axios.post(endpoint, data, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Error in API call:', error);
