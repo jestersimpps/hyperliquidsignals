@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HyperliquidInfoAPI } from '@/hyperliquid/info';
-import { getCachedData, setCachedData } from '@/lib/redis';
+import { RedisService } from '@/lib/redis-service';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,23 +15,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create cache key
-    const cacheKey = `candles:${coin}:${interval}`;
-    
     // Try to get data from cache
-    const cachedData = await getCachedData(cacheKey);
+    const cachedData = await RedisService.getCandleData(coin, interval);
     if (cachedData) {
       return NextResponse.json(cachedData);
     }
 
     // If not in cache, fetch from API
     const api = new HyperliquidInfoAPI();
-    const candleData = await api.getCandles(coin, interval);
+    const rawCandleData = await api.getCandles(coin, interval);
+    
+    // Transform and structure the data
+    const transformedData = RedisService.transformCandleData(rawCandleData);
+    
+    // Cache the transformed data
+    await RedisService.setCandleData(coin, interval, transformedData);
 
-    // Cache the data (5 minutes expiry)
-    await setCachedData(cacheKey, candleData, 300);
-
-    return NextResponse.json(candleData);
+    return NextResponse.json(transformedData);
   } catch (error) {
     console.error('Error fetching candle data:', error);
     return NextResponse.json(

@@ -25,15 +25,17 @@ ChartJS.register(
   TimeScale
 );
 
+interface CandleData {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
 interface CandlestickChartProps {
   coin: string;
-  data: {
-    time: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-  }[];
+  data: CandleData[];
   isLoading: boolean;
 }
 
