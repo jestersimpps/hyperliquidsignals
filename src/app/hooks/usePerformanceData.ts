@@ -82,7 +82,7 @@ export function usePerformanceData() {
     }
   }, []);
 
-  useWebSocket(handleWebSocketMessage);
+  useWebSocket(handleWebSocketMessage, [{ type: 'allMids' }]);
 
   useEffect(() => {
     async function fetchData() {

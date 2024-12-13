@@ -172,7 +172,20 @@ export default function CandlestickChart({
     }
   }, []);
 
-  useWebSocketCandles(coin, handleCandleUpdate);
+  useWebSocket(
+    (data) => {
+      if (data.channel === 'candle') {
+        handleCandleUpdate(data.data);
+      }
+    },
+    [
+      { 
+        type: 'candle',
+        coin: coin,
+        interval: '5m'
+      }
+    ]
+  );
 
   if (isLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;

@@ -1,25 +1,41 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { API_CONFIG } from '../api/config';
+import { WsSubscription } from '../../types/websocket';
 
-export function useWebSocket(onMessage: (data: any) => void) {
+interface Subscription {
+  type: string;
+  coin?: string;
+  interval?: string;
+}
+
+export function useWebSocket(onMessage: (data: any) => void, subscriptions: Subscription[] = []) {
   const ws = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    if (!ws.current) {
+  const subscribe = useCallback((subscription: Subscription) => {
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      const message: WsSubscription = {
+        method: 'subscribe',
+        subscription: {
+          type: subscription.type,
+          coin: subscription.coin,
+          interval: subscription.interval,
+        },
+      };
+      ws.current.send(JSON.stringify(message));
+    }
+  }, []);
+
+  const connect = useCallback(() => {
+    if (ws.current?.readyState !== WebSocket.OPEN) {
       ws.current = new WebSocket(API_CONFIG.WEBSOCKET_URL);
 
       ws.current.onopen = () => {
         console.log('WebSocket connected');
-        if (ws.current) {
-          ws.current.send(JSON.stringify({
-            method: "subscribe",
-            subscription: {
-              type: "allMids",
-            },
-          }));
-        }
+        // Subscribe to all requested subscriptions
+        subscriptions.forEach(subscription => subscribe(subscription));
       };
 
       ws.current.onmessage = (event) => {
@@ -31,13 +47,30 @@ export function useWebSocket(onMessage: (data: any) => void) {
       ws.current.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
+
+      ws.current.onclose = () => {
+        console.log('WebSocket disconnected, attempting to reconnect...');
+        // Attempt to reconnect after 5 seconds
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, 5000);
+      };
     }
+  }, [onMessage, subscriptions, subscribe]);
+
+  useEffect(() => {
+    connect();
 
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       if (ws.current) {
         ws.current.close();
         ws.current = null;
       }
     };
-  }, [onMessage]);
+  }, [connect]);
+
+  return { subscribe };
 }
