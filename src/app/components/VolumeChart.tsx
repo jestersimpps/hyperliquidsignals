@@ -33,10 +33,9 @@ export default function VolumeChart() {
     return <div className="w-full max-w-4xl h-[400px] flex items-center justify-center text-red-500">{error}</div>;
   }
 
-  // Sort data by volume in descending order and take top 10
+  // Sort data by volume in descending order
   const sortedData = [...data]
-    .sort((a, b) => parseFloat(b.volume) - parseFloat(a.volume))
-    .slice(0, 10);
+    .sort((a, b) => parseFloat(b.volume) - parseFloat(a.volume));
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -65,6 +64,13 @@ export default function VolumeChart() {
       },
     },
     scales: {
+      x: {
+        ticks: {
+          autoSkip: true,
+          maxRotation: 45,
+          minRotation: 45
+        }
+      },
       y: {
         ticks: {
           callback: (value: any) => {
