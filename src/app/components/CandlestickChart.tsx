@@ -4,25 +4,25 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  TimeScale,
   Title,
   Tooltip,
   Legend,
-  TimeScale,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { CandlestickController, CandlestickElement, OhlcElement } from 'chartjs-chart-financial';
+import { Chart } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  TimeScale,
   Title,
   Tooltip,
   Legend,
-  TimeScale
+  CandlestickController,
+  CandlestickElement,
+  OhlcElement
 );
 
 interface CandleData {
@@ -80,20 +80,27 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
   };
 
   const chartData = {
-    labels: data.map(candle => new Date(candle.time)),
     datasets: [
       {
-        label: 'Price',
-        data: data.map(candle => candle.close),
-        borderColor: 'rgb(53, 162, 235)',
-        backgroundColor: 'rgba(53, 162, 235, 0.5)',
-      },
+        label: coin,
+        data: data.map(candle => ({
+          x: new Date(candle.time),
+          o: candle.open,
+          h: candle.high,
+          l: candle.low,
+          c: candle.close
+        })),
+        color: {
+          up: 'rgba(75, 192, 75, 1)',
+          down: 'rgba(255, 99, 132, 1)',
+        },
+      }
     ],
   };
 
   return (
     <div className="w-full h-[300px]">
-      <Line options={options} data={chartData} />
+      <Chart type='candlestick' options={options} data={chartData} />
     </div>
   );
 }
