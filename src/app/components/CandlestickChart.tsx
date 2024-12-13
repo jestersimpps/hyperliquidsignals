@@ -145,7 +145,7 @@ export default function CandlestickChart({
     };
   }, [data, isLoading]);
 
-  const handleCandleUpdate = useCallback((wsCandle: any) => {
+  const handleCandleUpdate = useCallback((wsCandle: WsCandle) => {
     if (!candlestickSeriesRef.current) return;
 
     const newCandle: CandlestickData = {
@@ -157,6 +157,19 @@ export default function CandlestickChart({
     };
 
     candlestickSeriesRef.current.update(newCandle);
+    
+    // Update trendlines when new candle arrives
+    if (onTrendlinesUpdate) {
+      const updatedData = [...data, {
+        time: wsCandle.t,
+        open: parseFloat(wsCandle.o),
+        high: parseFloat(wsCandle.h),
+        low: parseFloat(wsCandle.l),
+        close: parseFloat(wsCandle.c)
+      }];
+      const newTrendlines = findTrendlines(updatedData);
+      onTrendlinesUpdate(newTrendlines);
+    }
   }, []);
 
   useWebSocketCandles(coin, handleCandleUpdate);

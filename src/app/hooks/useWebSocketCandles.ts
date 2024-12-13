@@ -1,18 +1,22 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 import { WsCandle } from '@/types/websocket';
 
 export function useWebSocketCandles(
   coin: string, 
   onCandleUpdate: (candle: WsCandle) => void
 ) {
-  const wsRef = useRef<WebSocket | null>(null);
+  const handleMessage = (data: any) => {
+    if (data.channel === 'candle' && data.data) {
+      onCandleUpdate(data.data);
+    }
+  };
+
+  const ws = useWebSocket(handleMessage);
 
   useEffect(() => {
-    const ws = new WebSocket('wss://api.hyperliquid.xyz/ws');
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      ws.send(JSON.stringify({
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify({
         method: 'subscribe',
         subscription: {
           type: 'candle',
@@ -20,19 +24,6 @@ export function useWebSocketCandles(
           interval: '5m'
         }
       }));
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'candle') {
-        onCandleUpdate(data);
-      }
-    };
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [coin, onCandleUpdate]);
+    }
+  }, [coin, ws.current?.readyState]);
 }
