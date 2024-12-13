@@ -116,7 +116,7 @@ export default function PatternsPage() {
         [coin]: trendlines
       };
     });
-  }, [getTrendlineMessage, setActiveCoin]);
+  }, [getTrendlineMessage]);
 
   // Fetch candle data for each coin
   useEffect(() => {
