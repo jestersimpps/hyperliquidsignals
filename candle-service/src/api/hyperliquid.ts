@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Candle } from '../types/candle';
 
 export class HyperliquidAPI {
   private baseUrl = 'https://api.hyperliquid.xyz/info';
@@ -17,7 +18,7 @@ export class HyperliquidAPI {
     }
   }
 
-  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<any[]> {
+  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<Candle[][]> {
     return this.post(this.baseUrl, {
       type: 'candleSnapshot',
       req: {

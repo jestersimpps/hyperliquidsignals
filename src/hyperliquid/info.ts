@@ -7,6 +7,7 @@ import {
   SpotAccountState,
   Position,
 } from '../types/hyperliquid';
+import { Candle } from '../types/candle';
 import { BaseAPI } from './base';
 
 import { API_CONFIG } from '@/app/api/config';
@@ -57,7 +58,7 @@ export class HyperliquidInfoAPI extends BaseAPI {
     });
   }
 
-  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number) {
+  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<Candle[][]> {
     return this.post(API_URL, {
       type: 'candleSnapshot',
       req: {
