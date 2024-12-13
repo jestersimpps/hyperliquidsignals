@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HyperliquidInfoAPI } from '@/hyperliquid-api/info';
+import { HyperliquidInfoAPI } from '@/hyperliquid/info';
 
 export async function GET(request: NextRequest) {
   try {
