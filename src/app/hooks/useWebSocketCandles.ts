@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { API_CONFIG } from "../api/config";
-import { WsSubscription } from "../../types/websocket";
+import { WsSubscriptionMessage, WsResponse, WsCandleData } from "../../types/hyperliquid-ws";
 
 interface CandleSubscription {
   coin: string;
@@ -22,22 +22,22 @@ export function useWebSocketCandles(
 
       ws.current.onopen = () => {
         console.log("Candles WebSocket connected");
-        const message: WsSubscription = {
+        const message: WsSubscriptionMessage = {
           method: "subscribe",
           subscription: {
             type: "candle",
             coin: subscription.coin,
             interval: subscription.interval,
-          },
+          }
         };
         ws.current?.send(JSON.stringify(message));
       };
 
       ws.current.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.channel === "candle" && data.data) {
-            onMessage(data);
+          const response = JSON.parse(event.data) as WsResponse<WsCandleData>;
+          if (response.channel === "candle" && response.data) {
+            onMessage(response);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);

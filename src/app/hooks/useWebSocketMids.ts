@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { API_CONFIG } from '../api/config';
-import { WsSubscription } from '../../types/websocket';
+import { WsSubscriptionMessage, WsResponse, WsAllMidsData } from '../../types/hyperliquid-ws';
 
 export function useWebSocketMids(onMessage: (data: any) => void) {
   const ws = useRef<WebSocket | null>(null);
@@ -14,20 +14,20 @@ export function useWebSocketMids(onMessage: (data: any) => void) {
 
       ws.current.onopen = () => {
         console.log('WebSocket connected');
-        const message: WsSubscription = {
+        const message: WsSubscriptionMessage = {
           method: 'subscribe',
           subscription: {
             type: 'allMids'
-          },
+          }
         };
         ws.current?.send(JSON.stringify(message));
       };
 
       ws.current.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.channel === "allMids" && data.data?.mids) {
-            onMessage(data);
+          const response = JSON.parse(event.data) as WsResponse<WsAllMidsData>;
+          if (response.channel === "allMids" && response.data?.mids) {
+            onMessage(response);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
