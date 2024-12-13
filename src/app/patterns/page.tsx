@@ -40,50 +40,6 @@ export default function PatternsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [candleData, setCandleData] = useState<Record<string, CandleData[]>>({});
 
-  // Memoize the trendline update handler
-  // Calculate trendlines for each coin when their data changes
-  const calculateTrendlines = useCallback((coin: string, data: CandleData[]) => {
-    if (!data?.length) return;
-    
-    const trendlines = findTrendlines(data);
-    
-    setTrendlineMap(prev => {
-      // Only update if trendlines have actually changed
-      if (JSON.stringify(prev[coin]) === JSON.stringify(trendlines)) {
-        return prev;
-      }
-
-      // Find new intersecting trendlines that weren't in the previous state
-      const prevTrendlines = prev[coin] || [];
-      const newIntersectingTrendlines = trendlines.filter(line => 
-        line.isIntersecting && 
-        line.intersectionPrice &&
-        !prevTrendlines.some(prevLine => 
-          prevLine.isIntersecting &&
-          prevLine.type === line.type &&
-          prevLine.intersectionPrice === line.intersectionPrice
-        )
-      );
-
-      // Add new pattern events only for new intersecting trendlines
-      const newEvents = newIntersectingTrendlines.map(line => ({
-        coin,
-        timestamp: Date.now(),
-        type: line.type,
-        price: line.intersectionPrice!,
-        message: getTrendlineMessage(line, line.intersectionPrice)
-      }));
-
-      if (newEvents.length > 0) {
-        setPatternHistory(prev => [...newEvents, ...prev]);
-      }
-
-      return {
-        ...prev,
-        [coin]: trendlines
-      };
-    });
-  }, []);
 
   // Fetch candle data for each coin
   useEffect(() => {
