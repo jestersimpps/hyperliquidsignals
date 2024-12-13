@@ -9,7 +9,9 @@ import {
 } from '../types/hyperliquid';
 import { BaseAPI } from './base';
 
-const API_URL = process.env.API_URL || 'https://api.hyperliquid.xyz/info';
+import { API_CONFIG } from '@/app/api/config';
+
+const API_URL = API_CONFIG.BASE_URL;
 
 export class HyperliquidInfoAPI extends BaseAPI {
   async getMeta(): Promise<MetaResponse> {
