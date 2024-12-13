@@ -8,62 +8,86 @@ interface Trendline {
   end: Point;
   type: 'support' | 'resistance';
   strength: number;
+  isIntersecting?: boolean;
 }
 
 export function findTrendlines(data: { time: number; high: number; low: number }[]): Trendline[] {
   const trendlines: Trendline[] = [];
-  const minDistance = 5; // Minimum number of candles between points
-  const maxLines = 3; // Maximum number of lines per type
+  const maxLines = 3;
+  const numChunks = 5;
+  const chunkSize = Math.floor(data.length / numChunks);
   
-  // Find local maxima and minima
-  const peaks: Point[] = [];
-  const troughs: Point[] = [];
-  
-  for (let i = 2; i < data.length - 2; i++) {
-    // Peak detection
-    if (data[i].high > data[i-1].high && 
-        data[i].high > data[i-2].high && 
-        data[i].high > data[i+1].high && 
-        data[i].high > data[i+2].high) {
-      peaks.push({ time: data[i].time, price: data[i].high });
-    }
+  // Process each chunk
+  for (let i = 0; i < numChunks; i++) {
+    const startIdx = i * chunkSize;
+    const endIdx = Math.min((i + 1) * chunkSize, data.length);
+    const chunk = data.slice(startIdx, endIdx);
     
-    // Trough detection
-    if (data[i].low < data[i-1].low && 
-        data[i].low < data[i-2].low && 
-        data[i].low < data[i+1].low && 
-        data[i].low < data[i+2].low) {
-      troughs.push({ time: data[i].time, price: data[i].low });
-    }
-  }
-
-  // Find resistance lines connecting peaks
-  for (let i = 0; i < peaks.length - 1; i++) {
-    for (let j = i + 1; j < peaks.length; j++) {
-      if ((peaks[j].time - peaks[i].time) / (1000 * 60) >= minDistance) {
-        const line = {
-          start: peaks[i],
-          end: peaks[j],
-          type: 'resistance' as const,
-          strength: calculateLineStrength(peaks[i], peaks[j], data, 'resistance')
-        };
-        trendlines.push(line);
+    // Find support and resistance points in chunk
+    const supportPoints: Point[] = [];
+    const resistancePoints: Point[] = [];
+    
+    for (let j = 2; j < chunk.length - 2; j++) {
+      const candle = chunk[j];
+      const prevCandles = chunk.slice(j - 2, j);
+      const nextCandles = chunk.slice(j + 1, j + 3);
+      
+      // Check for support point
+      if (prevCandles.every(c => c.low > candle.low) && 
+          nextCandles.every(c => c.low > candle.low)) {
+        supportPoints.push({ time: candle.time, price: candle.low });
+      }
+      
+      // Check for resistance point
+      if (prevCandles.every(c => c.high < candle.high) && 
+          nextCandles.every(c => c.high < candle.high)) {
+        resistancePoints.push({ time: candle.time, price: candle.high });
       }
     }
-  }
 
-  // Find support lines connecting troughs
-  for (let i = 0; i < troughs.length - 1; i++) {
-    for (let j = i + 1; j < troughs.length; j++) {
-      if ((troughs[j].time - troughs[i].time) / (1000 * 60) >= minDistance) {
-        const line = {
-          start: troughs[i],
-          end: troughs[j],
-          type: 'support' as const,
-          strength: calculateLineStrength(troughs[i], troughs[j], data, 'support')
-        };
-        trendlines.push(line);
-      }
+    // Create regression lines for support and resistance
+    if (supportPoints.length >= 2) {
+      const xs = supportPoints.map(p => p.time);
+      const ys = supportPoints.map(p => p.price);
+      const slope = calculateSlope(xs, ys);
+      const intercept = calculateIntercept(xs, ys, slope);
+      
+      const line = {
+        start: { 
+          time: chunk[0].time,
+          price: slope * chunk[0].time + intercept
+        },
+        end: { 
+          time: chunk[chunk.length - 1].time,
+          price: slope * chunk[chunk.length - 1].time + intercept
+        },
+        type: 'support' as const,
+        strength: calculateLineStrength(supportPoints, chunk, slope, intercept),
+        isIntersecting: checkIntersection(data[data.length - 1], slope, intercept)
+      };
+      trendlines.push(line);
+    }
+
+    if (resistancePoints.length >= 2) {
+      const xs = resistancePoints.map(p => p.time);
+      const ys = resistancePoints.map(p => p.price);
+      const slope = calculateSlope(xs, ys);
+      const intercept = calculateIntercept(xs, ys, slope);
+      
+      const line = {
+        start: { 
+          time: chunk[0].time,
+          price: slope * chunk[0].time + intercept
+        },
+        end: { 
+          time: chunk[chunk.length - 1].time,
+          price: slope * chunk[chunk.length - 1].time + intercept
+        },
+        type: 'resistance' as const,
+        strength: calculateLineStrength(resistancePoints, chunk, slope, intercept),
+        isIntersecting: checkIntersection(data[data.length - 1], slope, intercept)
+      };
+      trendlines.push(line);
     }
   }
 
@@ -71,29 +95,54 @@ export function findTrendlines(data: { time: number; high: number; low: number }
   return filterBestLines(trendlines, maxLines);
 }
 
-function calculateLineStrength(start: Point, end: Point, data: { time: number; high: number; low: number }[], type: 'support' | 'resistance'): number {
-  const slope = (end.price - start.price) / (end.time - start.time);
+function calculateSlope(xs: number[], ys: number[]): number {
+  const n = xs.length;
+  const sumX = xs.reduce((a, b) => a + b, 0);
+  const sumY = ys.reduce((a, b) => a + b, 0);
+  const sumXY = xs.reduce((sum, x, i) => sum + x * ys[i], 0);
+  const sumXX = xs.reduce((sum, x) => sum + x * x, 0);
+  
+  return (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+}
+
+function calculateIntercept(xs: number[], ys: number[], slope: number): number {
+  const avgX = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const avgY = ys.reduce((a, b) => a + b, 0) / ys.length;
+  
+  return avgY - slope * avgX;
+}
+
+function calculateLineStrength(points: Point[], data: { time: number; high: number; low: number }[], slope: number, intercept: number): number {
   let touchPoints = 0;
   const tolerance = 0.003; // 0.3% tolerance
 
   data.forEach(candle => {
-    if (candle.time > start.time && candle.time < end.time) {
-      const expectedPrice = start.price + slope * (candle.time - start.time);
-      const price = type === 'resistance' ? candle.high : candle.low;
-      if (Math.abs(price - expectedPrice) / expectedPrice <= tolerance) {
-        touchPoints++;
-      }
+    const expectedPrice = slope * candle.time + intercept;
+    const lowPrice = Math.min(candle.low, candle.open, candle.close);
+    const highPrice = Math.max(candle.high, candle.open, candle.close);
+    
+    if (Math.abs(expectedPrice - lowPrice) / lowPrice <= tolerance ||
+        Math.abs(expectedPrice - highPrice) / highPrice <= tolerance) {
+      touchPoints++;
     }
   });
 
-  return touchPoints;
+  return touchPoints + points.length; // Add original points to strength
+}
+
+function checkIntersection(lastCandle: { time: number; high: number; low: number }, slope: number, intercept: number): boolean {
+  const expectedPrice = slope * lastCandle.time + intercept;
+  return expectedPrice >= lastCandle.low && expectedPrice <= lastCandle.high;
 }
 
 function filterBestLines(trendlines: Trendline[], maxLines: number): Trendline[] {
-  // Sort by strength (number of touch points)
-  const sorted = trendlines.sort((a, b) => b.strength - a.strength);
+  // Prioritize intersecting lines and sort by strength
+  const sorted = trendlines.sort((a, b) => {
+    if (a.isIntersecting && !b.isIntersecting) return -1;
+    if (!a.isIntersecting && b.isIntersecting) return 1;
+    return b.strength - a.strength;
+  });
   
-  // Get top resistance and support lines
   const resistance = sorted.filter(line => line.type === 'resistance').slice(0, maxLines);
   const support = sorted.filter(line => line.type === 'support').slice(0, maxLines);
   
