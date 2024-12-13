@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { findTrendlines } from '../services/trendlineService';
 import Card from "../components/Card";
 import CandlestickChart from "../components/CandlestickChart";
 
@@ -61,7 +62,12 @@ export default function PatternsPage() {
   }, []);
 
   // Memoize the trendline update handler
-  const handleTrendlinesUpdate = useCallback((coin: string, trendlines: Trendline[]) => {
+  // Calculate trendlines for each coin when their data changes
+  const calculateTrendlines = useCallback((coin: string, data: CandleData[]) => {
+    if (!data?.length) return;
+    
+    const trendlines = findTrendlines(data);
+    
     setTrendlineMap(prev => {
       // Only update if trendlines have actually changed
       if (JSON.stringify(prev[coin]) === JSON.stringify(trendlines)) {
@@ -163,7 +169,7 @@ export default function PatternsPage() {
                 <CandlestickChart
                   coin={pair.coin}
                   isLoading={isLoading}
-                  onTrendlinesUpdate={(trendlines) => handleTrendlinesUpdate(pair.coin, trendlines)}
+                  trendlines={trendlineMap[pair.coin] || []}
                 />
                 <div className="space-y-2 text-sm">
                   {trendlineMap[pair.coin]?.map((line, index) => line.isIntersecting && (

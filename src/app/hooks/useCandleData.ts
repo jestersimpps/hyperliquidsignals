@@ -42,5 +42,5 @@ export function useCandleData(coin: string, interval: string = "5m") {
     return () => clearInterval(pollInterval);
   }, [coin, interval]);
 
-  return { data, isLoading, error };
+  return { data, isLoading, error, setData };
 }

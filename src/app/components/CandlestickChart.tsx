@@ -3,22 +3,15 @@
 import { createChart, ColorType, Time, LineStyle, IChartApi } from 'lightweight-charts';
 import { useEffect, useRef, useMemo } from 'react';
 import { useCandleData } from '../hooks/useCandleData';
-import { findTrendlines } from '../services/trendlineService';
-
 interface CandlestickChartProps {
   coin: string;
   isLoading: boolean;
-  onTrendlinesUpdate?: (trendlines: Trendline[]) => void;
-}
-
-interface Point {
-  time: number;
-  price: number;
+  trendlines: Trendline[];
 }
 
 interface Trendline {
-  start: Point;
-  end: Point;
+  start: { time: number; price: number };
+  end: { time: number; price: number };
   type: 'support' | 'resistance';
   strength: number;
   isIntersecting?: boolean;
@@ -33,19 +26,6 @@ export default function CandlestickChart({
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const { data, isLoading: dataLoading } = useCandleData(coin, '5m');
-
-  // Calculate trendlines only when data changes
-  const trendlines = useMemo(() => {
-    if (!data?.length) return [];
-    return findTrendlines(data);
-  }, [data]);
-
-  // Notify parent component of trendlines update
-  useEffect(() => {
-    if (onTrendlinesUpdate) {
-      onTrendlinesUpdate(trendlines);
-    }
-  }, [trendlines, onTrendlinesUpdate]);
 
   // Initialize chart
   useEffect(() => {
