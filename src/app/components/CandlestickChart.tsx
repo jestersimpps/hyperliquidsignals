@@ -55,29 +55,40 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
         display: true,
         text: `${coin} - 5m`,
       },
+      tooltip: {
+        intersect: false,
+        mode: 'index' as const,
+        callbacks: {
+          label: (ctx: any) => {
+            const point = ctx.raw;
+            return `O: ${point.o.toFixed(2)}  H: ${point.h.toFixed(2)}  L: ${point.l.toFixed(2)}  C: ${point.c.toFixed(2)}`;
+          }
+        }
+      }
     },
     scales: {
       x: {
         type: 'time' as const,
+        offset: true,
+        ticks: {
+          major: {
+            enabled: true,
+          },
+          source: 'data' as const,
+          maxRotation: 0,
+          autoSkip: true,
+          autoSkipPadding: 75,
+        },
         time: {
           unit: 'minute' as const,
           displayFormats: {
             minute: 'HH:mm',
           },
-          tooltipFormat: 'HH:mm',
+          tooltipFormat: 'HH:mm:ss',
         },
-        title: {
-          display: true,
-          text: 'Time',
-        },
-        ticks: {
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 10,
-        },
-        distribution: 'linear',
       },
       y: {
+        type: 'linear' as const,
         title: {
           display: true,
           text: 'Price',
@@ -97,13 +108,18 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
           l: candle.low,
           c: candle.close
         })),
-        color: {
-          up: 'rgba(75, 192, 75, 1)',
-          down: 'rgba(255, 99, 132, 1)',
+        borderColor: (ctx: any) => {
+          const point = ctx.raw;
+          return point.c >= point.o ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)';
         },
-        borderColor: '#000000',
+        backgroundColor: (ctx: any) => {
+          const point = ctx.raw;
+          return point.c >= point.o 
+            ? 'rgba(75, 192, 192, 0.5)'
+            : 'rgba(255, 99, 132, 0.5)';
+        },
         borderWidth: 1,
-        barWidth: 6,
+        barWidth: 4,
       }
     ],
   };
