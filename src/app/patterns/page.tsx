@@ -68,16 +68,26 @@ export default function PatternsPage() {
         return prev;
       }
 
-      // Add new pattern events for intersecting trendlines
-      const newEvents = trendlines
-        .filter(line => line.isIntersecting && line.intersectionPrice)
-        .map(line => ({
-          coin,
-          timestamp: Date.now(),
-          type: line.type,
-          price: line.intersectionPrice!,
-          message: getTrendlineMessage(line, line.intersectionPrice)
-        }));
+      // Find new intersecting trendlines that weren't in the previous state
+      const prevTrendlines = prev[coin] || [];
+      const newIntersectingTrendlines = trendlines.filter(line => 
+        line.isIntersecting && 
+        line.intersectionPrice &&
+        !prevTrendlines.some(prevLine => 
+          prevLine.isIntersecting &&
+          prevLine.type === line.type &&
+          prevLine.intersectionPrice === line.intersectionPrice
+        )
+      );
+
+      // Add new pattern events only for new intersecting trendlines
+      const newEvents = newIntersectingTrendlines.map(line => ({
+        coin,
+        timestamp: Date.now(),
+        type: line.type,
+        price: line.intersectionPrice!,
+        message: getTrendlineMessage(line, line.intersectionPrice)
+      }));
 
       if (newEvents.length > 0) {
         setPatternHistory(prev => [...newEvents, ...prev]);

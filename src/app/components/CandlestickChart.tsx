@@ -42,7 +42,7 @@ export default function CandlestickChart({
 
   // Notify parent component of trendlines update
   useEffect(() => {
-    if (onTrendlinesUpdate && trendlines.length > 0) {
+    if (onTrendlinesUpdate) {
       onTrendlinesUpdate(trendlines);
     }
   }, [trendlines, onTrendlinesUpdate]);
