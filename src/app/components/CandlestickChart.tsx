@@ -15,7 +15,6 @@ interface CandleData {
 
 interface CandlestickChartProps {
   coin: string;
-  data: CandleData[];
   isLoading: boolean;
 }
 
@@ -41,7 +40,7 @@ export default function CandlestickChart({
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'>>();
 
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || !data.length) return;
+    if (!chartContainerRef.current || isLoading || !liveData.length) return;
 
     // Create the chart
     const chart = createChart(chartContainerRef.current, {
@@ -90,7 +89,7 @@ export default function CandlestickChart({
     });
 
     // Format the data for the chart
-    const formattedData = data.map((candle) => ({
+    const formattedData = liveData.map((candle) => ({
       time: candle.time / 1000 as Time, // Convert milliseconds to seconds
       open: candle.open,
       high: candle.high,
@@ -102,7 +101,7 @@ export default function CandlestickChart({
     candlestickSeriesRef.current = candlestickSeries;
 
     // Add trendlines and notify parent
-    const trendlines = findTrendlines(data);
+    const trendlines = findTrendlines(liveData);
     if (onTrendlinesUpdate) {
       onTrendlinesUpdate(trendlines);
     }
@@ -160,7 +159,7 @@ export default function CandlestickChart({
     
     // Update trendlines when new candle arrives
     if (onTrendlinesUpdate) {
-      const updatedData = [...data, {
+      const updatedData = [...liveData, {
         time: wsCandle.t,
         open: parseFloat(wsCandle.o),
         high: parseFloat(wsCandle.h),

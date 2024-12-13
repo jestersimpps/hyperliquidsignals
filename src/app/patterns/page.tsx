@@ -56,7 +56,6 @@ export default function PatternsPage() {
               <div className="flex flex-col gap-4">
                 <CandlestickChart
                   coin={pair.coin}
-                  data={candleData[pair.coin] || []}
                   isLoading={isLoading}
                   onTrendlinesUpdate={(trendlines) => {
                     setTrendlineMap(prev => ({
