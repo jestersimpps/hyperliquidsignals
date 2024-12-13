@@ -59,8 +59,8 @@ export default function PerformanceOverview() {
             <tr key={item.coin}>
               <td className="px-6 py-4 whitespace-nowrap text-sm">{item.coin}</td>
               <td key={`${item.coin}-${item.markPrice}`} className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                <span className={`price-arrow ${item.priceChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {item.priceChange >= 0 ? '↑' : '↓'}
+                <span className={`price-arrow ${item.priceChangeVsPrevious > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {item.priceChangeVsPrevious > 0 ? '↑' : '↓'}
                 </span>
                 ${parseFloat(item.markPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>

@@ -9,6 +9,8 @@ interface PerformanceData {
   prevDayPrice: string;
   priceChange: number;
   priceChangePercentage: number;
+  previousPrice?: string;
+  priceChangeVsPrevious: number;
 }
 
 export type SortField = 'coin' | 'markPrice' | 'priceChange' | 'priceChangePercentage';
@@ -61,12 +63,17 @@ export function usePerformanceData() {
             const newMarkPrice = newPrice;
             const priceChange = parseFloat(newMarkPrice) - parseFloat(item.prevDayPrice);
             const priceChangePercentage = (priceChange / parseFloat(item.prevDayPrice)) * 100;
+            const priceChangeVsPrevious = item.previousPrice 
+              ? parseFloat(newMarkPrice) - parseFloat(item.previousPrice)
+              : 0;
             
             return {
               ...item,
+              previousPrice: item.markPrice,
               markPrice: newMarkPrice,
               priceChange,
               priceChangePercentage,
+              priceChangeVsPrevious,
             };
           }
           return item;
