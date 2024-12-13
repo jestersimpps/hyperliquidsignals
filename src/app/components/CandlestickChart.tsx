@@ -2,7 +2,7 @@
 
 import { createChart, ColorType, Time, LineStyle, ISeriesApi, CandlestickData } from 'lightweight-charts';
 import { useEffect, useRef, useCallback } from 'react';
-import { useWebSocketCandles } from '../hooks/useWebSocketCandles';
+import { useCandleData } from '../hooks/useCandleData';
 import { findTrendlines } from '../services/trendlineService';
 
 interface CandleData {
