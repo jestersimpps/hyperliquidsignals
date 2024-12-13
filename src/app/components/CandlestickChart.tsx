@@ -40,7 +40,7 @@ export default function CandlestickChart({
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'>>();
 
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || !liveData.length) return;
+    if (!chartContainerRef.current || isLoading || !liveData?.length) return;
 
     // Create the chart
     const chart = createChart(chartContainerRef.current, {
@@ -142,7 +142,7 @@ export default function CandlestickChart({
       window.removeEventListener('resize', handleResize);
       chart.remove();
     };
-  }, [data, isLoading]);
+  }, [isLoading, liveData, onTrendlinesUpdate]);
 
   const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
 
