@@ -82,7 +82,11 @@ export default function PatternsPage() {
                   {trendlineMap[pair.coin]?.map((line, index) => line.isIntersecting && (
                     <div key={index} className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${
-                        line.type === 'support' ? 'bg-[rgb(75,192,192)]' : 'bg-[rgb(255,99,132)]'
+                        candleData[pair.coin]?.[candleData[pair.coin].length - 1]?.close < line.intersectionPrice
+                          ? 'bg-[rgb(255,99,132)]' // Red for broken levels
+                          : line.type === 'support' 
+                            ? 'bg-[rgb(22,199,132)]' // Green for potential longs at support
+                            : 'bg-[rgb(255,99,132)]' // Red for potential shorts at resistance
                       }`} />
                       <p>
                         <span className="font-medium">
