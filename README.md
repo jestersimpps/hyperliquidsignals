@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Crypto Trading Analysis Platform
+
+A real-time cryptocurrency trading analysis platform built with Next.js that provides advanced pattern detection, trendline analysis, and trading pressure indicators for the Hyperliquid exchange.
+
+## Features
+
+- Real-time price and trading data visualization
+- Automatic trendline detection for support and resistance levels
+- Live trading pressure indicators
+- Pattern detection and historical pattern tracking
+- WebSocket integration for instant updates
+- Dark mode support
+
+## Technology Stack
+
+- **Frontend**: Next.js, React, TypeScript
+- **Data Visualization**: Lightweight Charts
+- **Real-time Data**: WebSocket API
+- **State Management**: React Hooks
+- **Styling**: Tailwind CSS
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 16.x or later
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/crypto-trading-analysis.git
+cd crypto-trading-analysis
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Start the development server:
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/src/app` - Next.js application pages and components
+- `/src/hyperliquid` - Hyperliquid exchange API integration
+- `/src/types` - TypeScript type definitions
+- `/src/lib` - Utility functions and services
 
-## Learn More
+## Key Components
 
-To learn more about Next.js, take a look at the following resources:
+- **CandlestickChart**: Real-time price chart with trendline visualization
+- **PatternHistoryRow**: Displays detected patterns and trading pressure
+- **WebSocket Integration**: Real-time data streaming for prices and trades
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Acknowledgments
+
+- [Hyperliquid Exchange](https://hyperliquid.xyz) for their WebSocket API
+- [TradingView Lightweight Charts](https://github.com/tradingview/lightweight-charts) for charting capabilities
