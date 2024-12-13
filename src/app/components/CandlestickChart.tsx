@@ -1,7 +1,8 @@
 'use client';
 
-import { createChart, ColorType, Time, LineStyle } from 'lightweight-charts';
-import { useEffect, useRef } from 'react';
+import { createChart, ColorType, Time, LineStyle, ISeriesApi, CandlestickData } from 'lightweight-charts';
+import { useEffect, useRef, useCallback } from 'react';
+import { useWebSocketCandles } from '../hooks/useWebSocketCandles';
 import { findTrendlines } from '../services/trendlineService';
 
 interface CandleData {
@@ -37,6 +38,7 @@ export default function CandlestickChart({
 }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
+  const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'>>();
 
   useEffect(() => {
     if (!chartContainerRef.current || isLoading || !data.length) return;
@@ -97,6 +99,7 @@ export default function CandlestickChart({
     }));
 
     candlestickSeries.setData(formattedData);
+    candlestickSeriesRef.current = candlestickSeries;
 
     // Add trendlines and notify parent
     const trendlines = findTrendlines(data);
@@ -141,6 +144,22 @@ export default function CandlestickChart({
       chart.remove();
     };
   }, [data, isLoading]);
+
+  const handleCandleUpdate = useCallback((wsCandle: any) => {
+    if (!candlestickSeriesRef.current) return;
+
+    const newCandle: CandlestickData = {
+      time: wsCandle.t / 1000 as Time,
+      open: parseFloat(wsCandle.o),
+      high: parseFloat(wsCandle.h),
+      low: parseFloat(wsCandle.l),
+      close: parseFloat(wsCandle.c)
+    };
+
+    candlestickSeriesRef.current.update(newCandle);
+  }, []);
+
+  useWebSocketCandles(coin, handleCandleUpdate);
 
   if (isLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
