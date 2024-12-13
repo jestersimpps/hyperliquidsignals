@@ -27,7 +27,16 @@ export default function Navbar() {
               >
                 Volume
               </Link>
-              {/* Add more navigation items here */}
+              <Link
+                href="/patterns"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  pathname === '/patterns'
+                    ? 'border-blue-500 text-foreground'
+                    : 'border-transparent text-foreground/60 hover:text-foreground'
+                }`}
+              >
+                Patterns
+              </Link>
             </div>
           </div>
         </div>
