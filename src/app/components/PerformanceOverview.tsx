@@ -58,7 +58,9 @@ export default function PerformanceOverview() {
           {sortedData.map((item) => (
             <tr key={item.coin}>
               <td className="px-6 py-4 whitespace-nowrap text-sm">{item.coin}</td>
-              <td key={`${item.coin}-${item.markPrice}`} className="px-6 py-4 whitespace-nowrap text-sm text-right flash-animation">
+              <td key={`${item.coin}-${item.markPrice}`} className={`px-6 py-4 whitespace-nowrap text-sm text-right ${
+                item.priceChange >= 0 ? 'flash-green' : 'flash-red'
+              }`}>
                 ${parseFloat(item.markPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
               <td key={`${item.coin}-${item.priceChange}`} className="px-6 py-4 whitespace-nowrap text-sm text-right flash-animation">
