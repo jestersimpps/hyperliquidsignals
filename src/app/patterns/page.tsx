@@ -38,15 +38,37 @@ export default function PatternsPage() {
   const [topPairs, setTopPairs] = useState<VolumeData[]>([]);
   const [trendlineMap, setTrendlineMap] = useState<Record<string, Trendline[]>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [candleData, setCandleData] = useState<Record<string, CandleData[]>>({});
 
-  // Subscribe to candle data updates for each coin
+  // Fetch candle data for each coin
   useEffect(() => {
-    topPairs.forEach(pair => {
-      const { data, setData } = useCandleData(pair.coin);
-      if (data?.length) {
-        calculateTrendlines(pair.coin, data);
+    const fetchCandleData = async () => {
+      const newCandleData: Record<string, CandleData[]> = {};
+      
+      for (const pair of topPairs) {
+        try {
+          const response = await fetch(`/api/candles?coin=${pair.coin}&interval=5m`);
+          if (!response.ok) throw new Error(`Failed to fetch candle data for ${pair.coin}`);
+          const data = await response.json();
+          newCandleData[pair.coin] = data;
+          
+          if (data.length) {
+            calculateTrendlines(pair.coin, data);
+          }
+        } catch (error) {
+          console.error(`Error fetching candle data for ${pair.coin}:`, error);
+        }
       }
-    });
+      
+      setCandleData(newCandleData);
+    };
+
+    if (topPairs.length) {
+      fetchCandleData();
+      // Poll for updates every 30 seconds
+      const pollInterval = setInterval(fetchCandleData, 30000);
+      return () => clearInterval(pollInterval);
+    }
   }, [topPairs, calculateTrendlines]);
 
   useEffect(() => {
@@ -179,6 +201,7 @@ export default function PatternsPage() {
                 <CandlestickChart
                   coin={pair.coin}
                   isLoading={isLoading}
+                  data={candleData[pair.coin] || []}
                   trendlines={trendlineMap[pair.coin] || []}
                 />
                 <div className="space-y-2 text-sm">

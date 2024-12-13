@@ -1,31 +1,36 @@
 'use client';
 
 import { createChart, ColorType, Time, LineStyle, IChartApi } from 'lightweight-charts';
-import { useEffect, useRef, useMemo } from 'react';
-import { useCandleData } from '../hooks/useCandleData';
+import { useEffect, useRef } from 'react';
+
 interface CandlestickChartProps {
   coin: string;
   isLoading: boolean;
-  trendlines: Trendline[];
-}
-
-interface Trendline {
-  start: { time: number; price: number };
-  end: { time: number; price: number };
-  type: 'support' | 'resistance';
-  strength: number;
-  isIntersecting?: boolean;
-  intersectionPrice?: number;
+  data: Array<{
+    time: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+  }>;
+  trendlines: Array<{
+    start: { time: number; price: number };
+    end: { time: number; price: number };
+    type: 'support' | 'resistance';
+    strength: number;
+    isIntersecting?: boolean;
+    intersectionPrice?: number;
+  }>;
 }
 
 export default function CandlestickChart({ 
   coin, 
-  isLoading: propsLoading,
-  onTrendlinesUpdate 
+  isLoading,
+  data,
+  trendlines 
 }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const { data, isLoading: dataLoading } = useCandleData(coin, '5m');
 
   // Initialize chart
   useEffect(() => {
