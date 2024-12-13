@@ -150,23 +150,12 @@ export default function CandlestickChart({
     };
 
     candlestickSeriesRef.current.update(newCandle);
-    
-    // Update trendlines when new candle arrives
-    if (onTrendlinesUpdate) {
-      const updatedData = [...liveData, {
-        time: wsCandle.t,
-        open: parseFloat(wsCandle.o),
-        high: parseFloat(wsCandle.h),
-        low: parseFloat(wsCandle.l),
-        close: parseFloat(wsCandle.c)
-      }];
-      const newTrendlines = findTrendlines(updatedData);
-      onTrendlinesUpdate(newTrendlines);
-    }
-  }, [liveData, onTrendlinesUpdate]);
+  }, []);
 
   useEffect(() => {
     if (!liveData.length) return;
+    
+    // Update the chart with the latest candle
     const lastCandle = liveData[liveData.length - 1];
     handleCandleUpdate({
       t: lastCandle.time,
@@ -180,7 +169,13 @@ export default function CandlestickChart({
       n: 0,
       T: 0
     });
-  }, [liveData, handleCandleUpdate, coin]);
+
+    // Update trendlines
+    if (onTrendlinesUpdate) {
+      const newTrendlines = findTrendlines(liveData);
+      onTrendlinesUpdate(newTrendlines);
+    }
+  }, [liveData, handleCandleUpdate, coin, onTrendlinesUpdate]);
 
   if (isLoading || liveDataLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
