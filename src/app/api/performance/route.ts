@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HyperliquidInfoAPI } from '@/hyperliquid-api/info';
 import type { AssetContext, MetaResponse } from '@/types/hyperliquid';
+import { HyperliquidInfoAPI } from '@/hyperliquid/info';
 
 export async function GET(request: NextRequest) {
   try {
