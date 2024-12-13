@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTradesPressure } from '../hooks/useTradesPressure';
 import { findTrendlines } from '../services/trendlineService';
 import Card from "../components/Card";
 import CandlestickChart from "../components/CandlestickChart";
@@ -69,10 +70,11 @@ export default function PatternsPage() {
     }
   }, []);
 
+  // Get trade pressure for the coin
+  const tradePressure = useTradesPressure(coin);
+
   // Memoize the trendline calculation
   const calculateTrendlines = useCallback((coin: string, data: CandleData[]) => {
-    // Get trade pressure for the coin
-    const { pressure: tradePressure } = useTradesPressure(coin);
     if (!data?.length) return;
     
     const trendlines = findTrendlines(data);
@@ -121,7 +123,7 @@ export default function PatternsPage() {
         [coin]: trendlines
       };
     });
-  }, [getTrendlineMessage, useTradesPressure]);
+  }, [getTrendlineMessage, tradePressure]);
 
   // Fetch candle data for each coin
   useEffect(() => {
