@@ -4,16 +4,7 @@ import { createChart, ColorType, Time, LineStyle, ISeriesApi, CandlestickData } 
 import { useEffect, useRef, useCallback } from 'react';
 import { useCandleData } from '../hooks/useCandleData';
 import { findTrendlines } from '../services/trendlineService';
-
-interface CandleData {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-}
-
-import { WsCandle } from '../../types/hyperliquid-ws';
+import { WsCandle } from '@/types/websocket';
 
 interface CandlestickChartProps {
   coin: string;
@@ -38,9 +29,12 @@ export default function CandlestickChart({
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'>>();
+  
+  // Move this up before any useEffect that depends on it
+  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
 
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || !liveData?.length) return;
+    if (!chartContainerRef.current || isLoading || !liveData.length) return;
 
     // Create the chart
     const chart = createChart(chartContainerRef.current, {
@@ -144,8 +138,6 @@ export default function CandlestickChart({
     };
   }, [isLoading, liveData, onTrendlinesUpdate]);
 
-  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
-
   const handleCandleUpdate = useCallback((wsCandle: WsCandle) => {
     if (!candlestickSeriesRef.current) return;
 
@@ -185,9 +177,10 @@ export default function CandlestickChart({
       l: lastCandle.low.toString(),
       c: lastCandle.close.toString(),
       v: '0',
-      n: 0
+      n: 0,
+      T: 0
     });
-  }, [liveData, handleCandleUpdate]);
+  }, [liveData, handleCandleUpdate, coin]);
 
   if (isLoading || liveDataLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
