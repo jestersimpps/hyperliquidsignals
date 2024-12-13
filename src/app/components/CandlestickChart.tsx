@@ -1,7 +1,8 @@
 'use client';
 
-import { createChart, ColorType, Time } from 'lightweight-charts';
+import { createChart, ColorType, Time, LineStyle } from 'lightweight-charts';
 import { useEffect, useRef } from 'react';
+import { findTrendlines } from '../services/trendlineService';
 
 interface CandleData {
   time: number;
@@ -82,6 +83,23 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
     }));
 
     candlestickSeries.setData(formattedData);
+
+    // Add trendlines
+    const trendlines = findTrendlines(data);
+    trendlines.forEach((trendline) => {
+      const lineSeries = chart.addLineSeries({
+        color: trendline.type === 'support' ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)',
+        lineWidth: 2,
+        lineStyle: LineStyle.Dashed,
+      });
+
+      const lineData = trendline.points.map(point => ({
+        time: point.time / 1000 as Time,
+        value: point.price,
+      }));
+
+      lineSeries.setData(lineData);
+    });
 
     // Fit the chart to the data
     chart.timeScale().fitContent();
