@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HyperliquidInfoAPI } from '@/hyperliquid-api/info';
-import type { SpotMetaResponse, SpotAssetContext } from '@/types/hyperliquid';
+import { HyperliquidInfoAPI } from '@/hyperliquid/info';
 
 export async function GET(request: NextRequest) {
   try {
-    const api = new HyperliquidInfoAPI();
-    const [meta, assetCtxs] = await api.getSpotMetaAndAssetCtxs();
+    const { searchParams } = new URL(request.url);
+    const coin = searchParams.get('coin') || undefined;
 
-    const volumeData = meta.tokens
-      .filter(token => token.isCanonical)
-      .map((token, index) => ({
-        coin: token.name,
-        volume: assetCtxs[index]?.dayNtlVlm || '0',
-      }));
+    const api = new HyperliquidInfoAPI();
+    const volumeData = await api.getVolume(coin);
 
     return NextResponse.json(volumeData);
   } catch (error) {
