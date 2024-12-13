@@ -38,7 +38,7 @@ interface PatternEvent {
 }
 
 const MAX_PATTERN_HISTORY = 100; // Limit pattern history size
-const POLL_INTERVAL = 30000; // 30 seconds
+const POLL_INTERVAL = 60 * 1000; // 30 seconds
 
 export default function PatternsPage() {
   const [patternHistory, setPatternHistory] = useState<PatternEvent[]>([]);
@@ -184,7 +184,7 @@ export default function PatternsPage() {
   }
 
   return (
-    <div className="w-full h-[calc(100vh-64px)] p-4">
+    <div className="w-full  p-4">
       <div className="mb-4">
         <Card
           title="Recent Pattern Signals"
