@@ -44,12 +44,12 @@ export class RedisService {
  }
 
  static transformCandleData(rawData: any[]): CandleData[] {
-  return rawData.map((candle) => ({
-   time: candle[0],
-   open: parseFloat(candle[1]),
-   high: parseFloat(candle[2]),
-   low: parseFloat(candle[3]),
-   close: parseFloat(candle[4]),
+  return rawData[0].map((candle: any) => ({
+   time: candle.t,
+   open: parseFloat(candle.o),
+   high: parseFloat(candle.h),
+   low: parseFloat(candle.l),
+   close: parseFloat(candle.c),
   }));
  }
 
