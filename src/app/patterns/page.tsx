@@ -58,23 +58,18 @@ export default function PatternsPage() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <Card
-        title="Top 10 Trading Pairs"
-        description="5-minute charts for the most active trading pairs by volume"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {topPairs.map((pair) => (
-            <div key={pair.coin} className="border border-black/[.1] dark:border-white/[.1] rounded-lg p-4">
-              <CandlestickChart
-                coin={pair.coin}
-                data={candleData[pair.coin] || []}
-                isLoading={isLoading}
-              />
-            </div>
-          ))}
-        </div>
-      </Card>
+    <div className="w-full h-[calc(100vh-64px)] p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
+        {topPairs.map((pair) => (
+          <div key={pair.coin} className="border border-black/[.1] dark:border-white/[.1] rounded-lg p-4">
+            <CandlestickChart
+              coin={pair.coin}
+              data={candleData[pair.coin] || []}
+              isLoading={isLoading}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
