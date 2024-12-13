@@ -89,8 +89,6 @@ export default function PatternsPage() {
             description={`24h Volume: ${Number(pair.volume).toLocaleString()} USDC`}
           >
             <div className="flex flex-col gap-2">
-                24h Volume: {Number(pair.volume).toLocaleString()} USDC
-              </p>
               <div className="flex flex-col gap-4">
                 <CandlestickChart
                   coin={pair.coin}
