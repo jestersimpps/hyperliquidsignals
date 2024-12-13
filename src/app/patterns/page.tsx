@@ -32,6 +32,7 @@ interface PatternEvent {
   type: 'support' | 'resistance';
   price: number;
   message: string;
+  pressure?: 'buy' | 'sell' | 'neutral';
 }
 
 const MAX_PATTERN_HISTORY = 100; // Limit pattern history size
@@ -44,19 +45,22 @@ export default function PatternsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [candleData, setCandleData] = useState<Record<string, CandleData[]>>({});
+  const [tradePressures, setTradePressures] = useState<Record<string, TradePressure>>({});
 
   // Memoize the trendline message generator
-  const getTrendlineMessage = useCallback((line: Trendline, currentPrice?: number) => {
+  const getTrendlineMessage = useCallback((line: Trendline, currentPrice?: number, pressure?: 'buy' | 'sell' | 'neutral') => {
     if (!line.intersectionPrice || !currentPrice) return '';
+
+    const pressureText = pressure ? ` (${pressure} pressure detected)` : '';
 
     if (line.type === 'support') {
       return currentPrice < line.intersectionPrice
-        ? 'Support broken - watch for further downside movement and potential retest from below'
-        : 'Potential bounce zone - watch for buying pressure';
+        ? `Support broken - watch for further downside movement and potential retest from below${pressureText}`
+        : `Potential bounce zone - watch for buying pressure${pressureText}`;
     } else {
       return currentPrice > line.intersectionPrice
-        ? 'Resistance broken - watch for continued upside movement and potential retest from above'
-        : 'Potential reversal zone - watch for selling pressure';
+        ? `Resistance broken - watch for continued upside movement and potential retest from above${pressureText}`
+        : `Potential reversal zone - watch for selling pressure${pressureText}`;
     }
   }, []);
 
@@ -202,7 +206,20 @@ export default function PatternsPage() {
                   <span>
                     {event.type === 'support' ? 'Support' : 'Resistance'} at ${event.price.toFixed(2)}
                   </span>
-                  <span className="text-gray-500">{event.message}</span>
+                  <span className="text-gray-500">
+                    {event.message}
+                    {event.pressure && (
+                      <span className={`ml-2 ${
+                        event.pressure === 'buy' 
+                          ? 'text-green-500' 
+                          : event.pressure === 'sell' 
+                            ? 'text-red-500' 
+                            : 'text-gray-500'
+                      }`}>
+                        ({event.pressure} pressure)
+                      </span>
+                    )}
+                  </span>
                 </div>
               ))}
               {patternHistory.length === 0 && (
