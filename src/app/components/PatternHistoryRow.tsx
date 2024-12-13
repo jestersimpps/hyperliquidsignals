@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTradesPressure } from '../hooks/useTradesPressure';
 
 interface PatternEvent {
