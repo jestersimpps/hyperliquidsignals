@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 interface PerformanceData {
   coin: string;
@@ -48,6 +49,31 @@ export function usePerformanceData() {
       direction: current.field === field && current.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
+
+  const handleWebSocketMessage = useCallback((message: any) => {
+    if (message.channel === 'allMids') {
+      setData(prevData => {
+        return prevData.map(item => {
+          const update = message.data.find((update: any) => update.coin === item.coin);
+          if (update) {
+            const newMarkPrice = update.mid;
+            const priceChange = parseFloat(newMarkPrice) - parseFloat(item.prevDayPrice);
+            const priceChangePercentage = (priceChange / parseFloat(item.prevDayPrice)) * 100;
+            
+            return {
+              ...item,
+              markPrice: newMarkPrice,
+              priceChange,
+              priceChangePercentage,
+            };
+          }
+          return item;
+        });
+      });
+    }
+  }, []);
+
+  useWebSocket(handleWebSocketMessage);
 
   useEffect(() => {
     async function fetchData() {
