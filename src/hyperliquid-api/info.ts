@@ -67,6 +67,14 @@ export class HyperliquidInfoAPI extends BaseAPI {
     });
   }
 
+  async getVolume(coin?: string): Promise<{ coin: string, volume: string }[]> {
+    const [meta, assetCtxs] = await this.getMetaAndAssetCtxs();
+    return meta.universe.map((asset, index) => ({
+      coin: asset.name,
+      volume: assetCtxs[index].dayNtlVlm
+    })).filter(v => !coin || v.coin === coin);
+  }
+
   // Spot Market Methods
   async getSpotMeta(): Promise<SpotMetaResponse> {
     return this.post(API_URL, {
