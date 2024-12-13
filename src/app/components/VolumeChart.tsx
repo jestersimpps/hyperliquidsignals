@@ -39,13 +39,38 @@ export default function VolumeChart() {
     .slice(0, 10);
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          font: {
+            family: 'var(--font-geist-sans)',
+          },
+        },
       },
       title: {
-        display: true,
-        text: 'Top 10 Trading Pairs by Volume',
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const value = context.raw;
+            return `Volume: $${value.toLocaleString('en-US', { 
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0 
+            })}`;
+          },
+        },
+      },
+    },
+    scales: {
+      y: {
+        ticks: {
+          callback: (value: any) => {
+            return `$${(value / 1000000).toFixed(1)}M`;
+          },
+        },
       },
     },
   };
