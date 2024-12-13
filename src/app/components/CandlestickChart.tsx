@@ -1,29 +1,7 @@
 'use client';
 
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { CandlestickController, CandlestickElement, OhlcElement } from 'chartjs-chart-financial';
-import { Chart } from 'react-chartjs-2';
-import 'chartjs-adapter-date-fns';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  TimeScale,
-  Title,
-  Tooltip,
-  Legend,
-  CandlestickController,
-  CandlestickElement,
-  OhlcElement
-);
+import { createChart, ColorType, Time } from 'lightweight-charts';
+import { useEffect, useRef } from 'react';
 
 interface CandleData {
   time: number;
@@ -40,93 +18,74 @@ interface CandlestickChartProps {
 }
 
 export default function CandlestickChart({ coin, data, isLoading }: CandlestickChartProps) {
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!chartContainerRef.current || isLoading || !data.length) return;
+
+    // Create the chart
+    const chart = createChart(chartContainerRef.current, {
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#D9D9D9',
+      },
+      grid: {
+        vertLines: { color: 'rgba(42, 46, 57, 0.5)' },
+        horzLines: { color: 'rgba(42, 46, 57, 0.5)' },
+      },
+      width: chartContainerRef.current.clientWidth,
+      height: 300,
+    });
+
+    // Create the candlestick series
+    const candlestickSeries = chart.addCandlestickSeries({
+      upColor: 'rgb(75, 192, 192)',
+      downColor: 'rgb(255, 99, 132)',
+      borderVisible: false,
+      wickUpColor: 'rgb(75, 192, 192)',
+      wickDownColor: 'rgb(255, 99, 132)',
+    });
+
+    // Format the data for the chart
+    const formattedData = data.map((candle) => ({
+      time: candle.time / 1000 as Time, // Convert milliseconds to seconds
+      open: candle.open,
+      high: candle.high,
+      low: candle.low,
+      close: candle.close,
+    }));
+
+    candlestickSeries.setData(formattedData);
+
+    // Fit the chart to the data
+    chart.timeScale().fitContent();
+
+    // Handle resize
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Store chart reference for cleanup
+    chartRef.current = chart;
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chart.remove();
+    };
+  }, [data, isLoading]);
+
   if (isLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
   }
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: true,
-        text: `${coin} - 5m`,
-      },
-      tooltip: {
-        intersect: false,
-        mode: 'index' as const,
-        callbacks: {
-          label: (ctx: any) => {
-            const point = ctx.raw;
-            return `O: ${point.o.toFixed(2)}  H: ${point.h.toFixed(2)}  L: ${point.l.toFixed(2)}  C: ${point.c.toFixed(2)}`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        type: 'time' as const,
-        offset: true,
-        ticks: {
-          major: {
-            enabled: true,
-          },
-          source: 'data' as const,
-          maxRotation: 0,
-          autoSkip: true,
-          autoSkipPadding: 75,
-        },
-        time: {
-          unit: 'minute' as const,
-          displayFormats: {
-            minute: 'HH:mm',
-          },
-          tooltipFormat: 'HH:mm:ss',
-        },
-      },
-      y: {
-        type: 'linear' as const,
-        title: {
-          display: true,
-          text: 'Price',
-        },
-      },
-    },
-  };
-
-  const chartData = {
-    datasets: [
-      {
-        label: coin,
-        data: data.map(candle => ({
-          x: new Date(candle.time),
-          o: candle.open,
-          h: candle.high,
-          l: candle.low,
-          c: candle.close
-        })),
-        borderColor: (ctx: any) => {
-          const point = ctx.raw;
-          return point.c >= point.o ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)';
-        },
-        backgroundColor: (ctx: any) => {
-          const point = ctx.raw;
-          return point.c >= point.o 
-            ? 'rgba(75, 192, 192, 0.5)'
-            : 'rgba(255, 99, 132, 0.5)';
-        },
-        borderWidth: 1,
-        barWidth: 4,
-      }
-    ],
-  };
-
   return (
     <div className="w-full h-[300px]">
-      <Chart type='candlestick' options={options} data={chartData} />
+      <div ref={chartContainerRef} className="w-full h-full" />
     </div>
   );
 }
