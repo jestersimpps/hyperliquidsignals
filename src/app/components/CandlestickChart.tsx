@@ -58,9 +58,7 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
         mouseWheel: false,
       },
       title: {
-        text: `${coin.toUpperCase()} Price Chart`,
-        visible: true,
-        color: '#D9D9D9',
+        visible: false,
       },
     });
 

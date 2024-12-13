@@ -61,13 +61,17 @@ export default function PatternsPage() {
     <div className="w-full h-[calc(100vh-64px)] p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
         {topPairs.map((pair) => (
-          <div key={pair.coin} className="border border-black/[.1] dark:border-white/[.1] rounded-lg p-4">
-            <CandlestickChart
-              coin={pair.coin}
-              data={candleData[pair.coin] || []}
-              isLoading={isLoading}
-            />
-          </div>
+          <Card key={pair.coin}>
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-semibold">{pair.coin.toUpperCase()} Analysis</h2>
+              <p className="text-sm text-muted-foreground">24h Volume: {Number(pair.volume).toLocaleString()} USDC</p>
+              <CandlestickChart
+                coin={pair.coin}
+                data={candleData[pair.coin] || []}
+                isLoading={isLoading}
+              />
+            </div>
+          </Card>
         ))}
       </div>
     </div>
