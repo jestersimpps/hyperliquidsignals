@@ -91,6 +91,8 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
         color: trendline.type === 'support' ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)',
         lineWidth: 2,
         lineStyle: LineStyle.Dashed,
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
 
       // Create line with just start and end points
