@@ -4,43 +4,79 @@ import WebSocket from 'ws';
 
 const SUPPORTED_INTERVALS = ['5m'];
 const SUPPORTED_COINS = ['BTC', 'ETH']; // Add more coins as needed
+const RECONNECT_DELAY = 5000;
+let wsInstance: WebSocket | null = null;
 
-async function startCandleService() {
-  const api = new HyperliquidInfoAPI();
-  
-  // Initial data fetch and cache
-  for (const coin of SUPPORTED_COINS) {
-    for (const interval of SUPPORTED_INTERVALS) {
-      try {
-        const rawCandleData = await api.getCandles(coin, interval);
-        const transformedData = RedisService.transformCandleData(rawCandleData);
-        await RedisService.setCandleData(coin, interval, transformedData);
-        console.log(`Initial candle data cached for ${coin} ${interval}`);
-      } catch (error) {
-        console.error(`Error fetching initial candle data for ${coin} ${interval}:`, error);
-      }
-    }
-  }
+function setupWebSocket(api: HyperliquidInfoAPI): Promise<WebSocket> {
+  return new Promise((resolve, reject) => {
+    try {
+      const ws = new WebSocket(process.env.WEBSOCKET_URL || 'wss://api.hyperliquid.xyz/ws');
+      wsInstance = ws;
 
-  // Subscribe to real-time updates
-  const ws = new WebSocket(process.env.WEBSOCKET_URL || 'wss://api.hyperliquid.xyz/ws');
+      ws.on('open', () => {
+        console.log('WebSocket connected');
+        // Subscribe to candle updates for all supported coins
+        for (const coin of SUPPORTED_COINS) {
+          ws.send(JSON.stringify({
+            method: "subscribe",
+            subscription: {
+              type: "candles",
+              coin: coin,
+              interval: "5m"
+            },
+          }));
+        }
+        resolve(ws);
+      });
 
-  ws.on('open', () => {
-    console.log('WebSocket connected');
-    // Subscribe to candle updates for all supported coins
-    for (const coin of SUPPORTED_COINS) {
-      ws.send(JSON.stringify({
-        method: "subscribe",
-        subscription: {
-          type: "candles",
-          coin: coin,
-          interval: "5m"
-        },
-      }));
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        reject(error);
+      });
+
+      ws.on('close', () => {
+        console.log('WebSocket disconnected, attempting to reconnect...');
+        wsInstance = null;
+        setTimeout(() => {
+          startCandleService().catch(console.error);
+        }, RECONNECT_DELAY);
+      });
+
+    } catch (error) {
+      reject(error);
     }
   });
+}
 
-  ws.on('message', async (data) => {
+async function startCandleService() {
+  try {
+  const api = new HyperliquidInfoAPI();
+  
+    // If there's an existing connection, close it
+    if (wsInstance) {
+      wsInstance.close();
+      wsInstance = null;
+    }
+
+    // Initial data fetch and cache
+    for (const coin of SUPPORTED_COINS) {
+      for (const interval of SUPPORTED_INTERVALS) {
+        try {
+          const rawCandleData = await api.getCandles(coin, interval);
+          const transformedData = RedisService.transformCandleData(rawCandleData);
+          await RedisService.setCandleData(coin, interval, transformedData);
+          console.log(`Initial candle data cached for ${coin} ${interval}`);
+        } catch (error) {
+          console.error(`Error fetching initial candle data for ${coin} ${interval}:`, error);
+        }
+      }
+    }
+
+    // Set up WebSocket connection
+    const ws = await setupWebSocket(api);
+
+    // Handle incoming messages
+    ws.on('message', async (data) => {
     try {
       const message = JSON.parse(data.toString());
       if (message.type === 'candle') {
@@ -62,14 +98,30 @@ async function startCandleService() {
     }
   });
 
-  ws.on('error', (error) => {
-    console.error('WebSocket error:', error);
-  });
-
-  ws.on('close', () => {
-    console.log('WebSocket disconnected, attempting to reconnect...');
-    setTimeout(startCandleService, 5000);
-  });
+  } catch (error) {
+    console.error('Error in candle service:', error);
+    // Attempt to reconnect after delay
+    setTimeout(() => {
+      startCandleService().catch(console.error);
+    }, RECONNECT_DELAY);
+  }
 }
 
-startCandleService().catch(console.error);
+// Handle process termination
+process.on('SIGINT', () => {
+  console.log('Shutting down candle service...');
+  if (wsInstance) {
+    wsInstance.close();
+  }
+  process.exit(0);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error('Unhandled promise rejection:', error);
+});
+
+// Start the service
+startCandleService().catch((error) => {
+  console.error('Failed to start candle service:', error);
+  process.exit(1);
+});
