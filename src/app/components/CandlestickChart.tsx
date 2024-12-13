@@ -172,20 +172,23 @@ export default function CandlestickChart({
     }
   }, []);
 
-  useWebSocket(
-    (data) => {
-      if (data.channel === 'candle') {
-        handleCandleUpdate(data.data);
-      }
-    },
-    [
-      { 
-        type: 'candle',
-        coin: coin,
-        interval: '5m'
-      }
-    ]
-  );
+  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
+
+  useEffect(() => {
+    if (!liveData.length) return;
+    const lastCandle = liveData[liveData.length - 1];
+    handleCandleUpdate({
+      t: lastCandle.time,
+      s: coin,
+      i: '5m',
+      o: lastCandle.open.toString(),
+      h: lastCandle.high.toString(),
+      l: lastCandle.low.toString(),
+      c: lastCandle.close.toString(),
+      v: '0',
+      n: 0
+    });
+  }, [liveData]);
 
   if (isLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;

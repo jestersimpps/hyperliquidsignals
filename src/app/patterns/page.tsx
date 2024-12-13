@@ -35,19 +35,6 @@ export default function PatternsPage() {
           .slice(0, 10);
         setTopPairs(sortedPairs);
 
-        // Fetch candle data for each pair
-        const candlePromises = sortedPairs.map(async (pair) => {
-          const response = await fetch(`/api/candles?coin=${pair.coin}&interval=5m`);
-          const data = await response.json();
-          return { coin: pair.coin, data };
-        });
-
-        const candleResults = await Promise.all(candlePromises);
-        const candleMap: Record<string, CandleData[]> = {};
-        candleResults.forEach(result => {
-          candleMap[result.coin] = result.data;
-        });
-        setCandleData(candleMap);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
