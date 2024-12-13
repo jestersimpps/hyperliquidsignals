@@ -60,9 +60,6 @@ export function useTradesPressure(coin: string) {
   }, [coin]);
 
   useEffect(() => {
-    const WINDOW_SIZE = 5 * 60 * 1000; // 5 minutes
-    let trades: Array<{ timestamp: number; volume: number }> = [];
-
     const cleanup = ws((message: WsResponse<any>) => {
       if (!Array.isArray(message.data)) return;
       
@@ -71,43 +68,28 @@ export function useTradesPressure(coin: string) {
         
         const volume = parseFloat(trade.sz);
         const isBuy = trade.side === 'B';
-      
-        // Add new trade
-        trades.push({
-          timestamp: Date.now(),
-          volume: isBuy ? volume : -volume
+        
+        // Update pressure based on this single trade
+        setPressure(prev => {
+          const newBuyVolume = isBuy ? prev.buyVolume + volume : prev.buyVolume;
+          const newSellVolume = !isBuy ? prev.sellVolume + volume : prev.sellVolume;
+          const newNetVolume = newBuyVolume - newSellVolume;
+          
+          // Determine pressure based on this trade's size relative to recent activity
+          let newPressure: 'buy' | 'sell' | 'neutral';
+          if (volume > (prev.buyVolume + prev.sellVolume) * 0.1) { // If trade is significant (>10% of recent volume)
+            newPressure = isBuy ? 'buy' : 'sell';
+          } else {
+            newPressure = prev.pressure; // Maintain current pressure for smaller trades
+          }
+          
+          return {
+            buyVolume: newBuyVolume,
+            sellVolume: newSellVolume,
+            netVolume: newNetVolume,
+            pressure: newPressure
+          };
         });
-      });
-
-      // Remove trades older than window size
-      const cutoff = Date.now() - WINDOW_SIZE;
-      trades = trades.filter(t => t.timestamp > cutoff);
-
-      // Calculate pressure
-      const buyVolume = trades
-        .filter(t => t.volume > 0)
-        .reduce((sum, t) => sum + t.volume, 0);
-      
-      const sellVolume = Math.abs(trades
-        .filter(t => t.volume < 0)
-        .reduce((sum, t) => sum + t.volume, 0));
-
-      const netVolume = buyVolume - sellVolume;
-      
-      // Determine pressure (threshold of 20% difference)
-      let pressure: 'buy' | 'sell' | 'neutral' = 'neutral';
-      const totalVolume = buyVolume + sellVolume;
-      if (totalVolume > 0) {
-        const buyPercentage = (buyVolume / totalVolume) * 100;
-        if (buyPercentage >= 60) pressure = 'buy';
-        else if (buyPercentage <= 40) pressure = 'sell';
-      }
-
-      setPressure({
-        buyVolume,
-        sellVolume,
-        netVolume,
-        pressure
       });
     });
 
