@@ -9,6 +9,7 @@ interface Trendline {
   type: 'support' | 'resistance';
   strength: number;
   isIntersecting?: boolean;
+  intersectionPrice?: number;
 }
 
 export function findTrendlines(data: { time: number; high: number; low: number }[]): Trendline[] {
@@ -130,9 +131,10 @@ function calculateLineStrength(points: Point[], data: { time: number; high: numb
   return touchPoints + points.length; // Add original points to strength
 }
 
-function checkIntersection(lastCandle: { time: number; high: number; low: number }, slope: number, intercept: number): boolean {
+function checkIntersection(lastCandle: { time: number; high: number; low: number }, slope: number, intercept: number): boolean | number {
   const expectedPrice = slope * lastCandle.time + intercept;
-  return expectedPrice >= lastCandle.low && expectedPrice <= lastCandle.high;
+  const isIntersecting = expectedPrice >= lastCandle.low && expectedPrice <= lastCandle.high;
+  return isIntersecting ? expectedPrice : false;
 }
 
 function filterBestLines(trendlines: Trendline[], maxLines: number): Trendline[] {

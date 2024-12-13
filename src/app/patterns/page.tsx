@@ -65,11 +65,31 @@ export default function PatternsPage() {
             <div className="flex flex-col gap-2">
               <h2 className="text-lg font-semibold">{pair.coin.toUpperCase()} Analysis</h2>
               <p className="text-sm text-muted-foreground">24h Volume: {Number(pair.volume).toLocaleString()} USDC</p>
-              <CandlestickChart
-                coin={pair.coin}
-                data={candleData[pair.coin] || []}
-                isLoading={isLoading}
-              />
+              <div className="flex flex-col gap-4">
+                <CandlestickChart
+                  coin={pair.coin}
+                  data={candleData[pair.coin] || []}
+                  isLoading={isLoading}
+                />
+                <div className="space-y-2 text-sm">
+                  {trendlines.map((line, index) => line.isIntersecting && (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        line.type === 'support' ? 'bg-[rgb(75,192,192)]' : 'bg-[rgb(255,99,132)]'
+                      }`} />
+                      <p>
+                        <span className="font-medium">
+                          {line.type === 'support' ? 'Support' : 'Resistance'} at {line.intersectionPrice?.toFixed(2)}:
+                        </span>
+                        {' '}
+                        {line.type === 'support' 
+                          ? 'Potential bounce zone - watch for buying pressure'
+                          : 'Potential reversal zone - watch for selling pressure'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </Card>
         ))}
