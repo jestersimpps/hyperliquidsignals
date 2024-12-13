@@ -90,8 +90,12 @@ export default function PatternsPage() {
                         </span>
                         {' '}
                         {line.type === 'support' 
-                          ? 'Potential bounce zone - watch for buying pressure'
-                          : 'Potential reversal zone - watch for selling pressure'}
+                          ? (candleData[pair.coin]?.[candleData[pair.coin].length - 1]?.close < line.intersectionPrice
+                            ? 'Support broken - watch for further downside movement and potential retest from below'
+                            : 'Potential bounce zone - watch for buying pressure')
+                          : (candleData[pair.coin]?.[candleData[pair.coin].length - 1]?.close > line.intersectionPrice
+                            ? 'Resistance broken - watch for continued upside movement and potential retest from above'
+                            : 'Potential reversal zone - watch for selling pressure')}
                       </p>
                     </div>
                   ))}
