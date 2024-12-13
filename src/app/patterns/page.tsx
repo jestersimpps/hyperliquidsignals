@@ -69,11 +69,10 @@ export default function PatternsPage() {
     }
   }, []);
 
-  // Get trade pressure for a coin
-  const { pressure: tradePressure } = useTradesPressure(coin);
-
   // Memoize the trendline calculation
   const calculateTrendlines = useCallback((coin: string, data: CandleData[]) => {
+    // Get trade pressure for the coin
+    const { pressure: tradePressure } = useTradesPressure(coin);
     if (!data?.length) return;
     
     const trendlines = findTrendlines(data);
@@ -122,7 +121,7 @@ export default function PatternsPage() {
         [coin]: trendlines
       };
     });
-  }, [getTrendlineMessage]);
+  }, [getTrendlineMessage, useTradesPressure]);
 
   // Fetch candle data for each coin
   useEffect(() => {
