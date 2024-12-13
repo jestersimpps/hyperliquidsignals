@@ -13,9 +13,12 @@ interface CandleData {
   close: number;
 }
 
+import { WsCandle } from '../../types/hyperliquid-ws';
+
 interface CandlestickChartProps {
   coin: string;
   isLoading: boolean;
+  onTrendlinesUpdate?: (trendlines: Trendline[]) => void;
 }
 
 interface Trendline {
@@ -29,12 +32,9 @@ interface Trendline {
 
 export default function CandlestickChart({ 
   coin, 
-  data, 
   isLoading,
   onTrendlinesUpdate
-}: CandlestickChartProps & { 
-  onTrendlinesUpdate?: (trendlines: Trendline[]) => void 
-}) {
+}: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
   const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'>>();
@@ -189,7 +189,9 @@ export default function CandlestickChart({
     });
   }, [liveData]);
 
-  if (isLoading) {
+  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
+
+  if (isLoading || liveDataLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
   }
 
