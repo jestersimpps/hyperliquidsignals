@@ -58,15 +58,15 @@ export default function PerformanceOverview() {
           {sortedData.map((item) => (
             <tr key={item.coin}>
               <td className="px-6 py-4 whitespace-nowrap text-sm">{item.coin}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+              <td key={`${item.coin}-${item.markPrice}`} className="px-6 py-4 whitespace-nowrap text-sm text-right flash-animation">
                 ${parseFloat(item.markPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+              <td key={`${item.coin}-${item.priceChange}`} className="px-6 py-4 whitespace-nowrap text-sm text-right flash-animation">
                 <span className={item.priceChange >= 0 ? 'text-green-500' : 'text-red-500'}>
                   ${Math.abs(item.priceChange).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
+              <td key={`${item.coin}-${item.priceChangePercentage}`} className="px-6 py-4 whitespace-nowrap text-sm text-right flash-animation">
                 <span className={item.priceChangePercentage >= 0 ? 'text-green-500' : 'text-red-500'}>
                   {item.priceChangePercentage >= 0 ? '+' : '-'}
                   {Math.abs(item.priceChangePercentage).toFixed(2)}%
