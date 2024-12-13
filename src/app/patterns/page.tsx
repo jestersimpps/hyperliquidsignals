@@ -47,12 +47,6 @@ export default function PatternsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [candleData, setCandleData] = useState<Record<string, CandleData[]>>({});
-  const [tradePressures, setTradePressures] = useState<Record<string, {
-    buyVolume: number;
-    sellVolume: number;
-    netVolume: number;
-    pressure: 'buy' | 'sell' | 'neutral';
-  }>>({});
 
   // Memoize the trendline message generator
   const getTrendlineMessage = useCallback((line: Trendline, currentPrice?: number, pressure?: 'buy' | 'sell' | 'neutral') => {
@@ -71,14 +65,9 @@ export default function PatternsPage() {
     }
   }, []);
 
-  // Get trade pressure for the active coin
-  const [activeCoin, setActiveCoin] = useState<string>('');
-  const tradePressure = useTradesPressure(activeCoin);
 
   // Memoize the trendline calculation
   const calculateTrendlines = useCallback((coin: string, data: CandleData[]) => {
-    // Update active coin for trade pressure
-    setActiveCoin(coin);
     if (!data?.length) return;
     
     const trendlines = findTrendlines(data);
@@ -108,7 +97,7 @@ export default function PatternsPage() {
         timestamp: Date.now(),
         type: line.type,
         price: line.intersectionPrice!,
-        pressure: tradePressure.pressure,
+        pressure: 'neutral',
         message: getTrendlineMessage(line, currentPrice, tradePressure.pressure)
       }));
 

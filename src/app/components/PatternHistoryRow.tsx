@@ -1,5 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useWebSocketMids } from '../hooks/useWebSocketMids';
+
 interface PatternEvent {
   coin: string;
   timestamp: number;
@@ -10,6 +13,20 @@ interface PatternEvent {
 }
 
 export default function PatternHistoryRow({ event, index }: { event: PatternEvent; index: number }) {
+  const [pressure, setPressure] = useState<'buy' | 'sell' | 'neutral'>(event.pressure || 'neutral');
+
+  const handleMidsMessage = (data: any) => {
+    if (data?.data?.mids) {
+      const coinData = data.data.mids.find((mid: any) => mid.coin === event.coin);
+      if (coinData) {
+        // Simple pressure calculation based on mid price changes
+        const currentMid = parseFloat(coinData.mid);
+        setPressure(currentMid > event.price ? 'buy' : currentMid < event.price ? 'sell' : 'neutral');
+      }
+    }
+  };
+
+  useWebSocketMids(handleMidsMessage);
   return (
     <div key={`${event.coin}-${event.timestamp}-${index}`} className="flex items-center justify-between gap-2 text-sm">
       <div className="flex items-center gap-2">
