@@ -1,3 +1,4 @@
+import { WsCandle } from "@/types/websocket";
 import { getCachedData, setCachedData } from "./redis";
 
 interface CandleData {
@@ -43,8 +44,8 @@ export class RedisService {
   await setCachedData(cacheKey, data, this.CANDLE_EXPIRY);
  }
 
- static transformCandleData(rawData: any[]): CandleData[] {
-  return rawData[0].map((candle: any) => ({
+ static transformCandleData(rawData: WsCandle[]): CandleData[] {
+  return rawData.map((candle: WsCandle) => ({
    time: candle.t,
    open: parseFloat(candle.o),
    high: parseFloat(candle.h),

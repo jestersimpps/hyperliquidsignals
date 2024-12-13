@@ -1,3 +1,4 @@
+import { WsCandle } from '@/types/websocket';
 import { 
   MetaResponse, 
   AccountState, 
@@ -7,7 +8,6 @@ import {
   SpotAccountState,
   Position,
 } from '../types/hyperliquid';
-import { Candle } from '../types/candle';
 import { BaseAPI } from './base';
 
 import { API_CONFIG } from '@/app/api/config';
@@ -58,7 +58,7 @@ export class HyperliquidInfoAPI extends BaseAPI {
     });
   }
 
-  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<Candle[][]> {
+  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<WsCandle[]> {
     return this.post(API_URL, {
       type: 'candleSnapshot',
       req: {
