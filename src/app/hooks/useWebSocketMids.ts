@@ -25,9 +25,9 @@ export function useWebSocketMids(onMessage: (data: any) => void) {
 
       ws.current.onmessage = (event) => {
         try {
-          const response = JSON.parse(event.data) as WsResponse<WsAllMidsData>;
-          if (response.channel === "allMids" && response.data?.mids) {
-            onMessage(response);
+          const response = JSON.parse(event.data);
+          if (response.channel === "allMids" && Array.isArray(response.data)) {
+            onMessage(response.data);
           }
         } catch (error) {
           console.error("Error parsing WebSocket message:", error);
