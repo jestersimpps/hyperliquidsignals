@@ -193,7 +193,11 @@ export default function PatternsPage() {
           <div className="max-h-[200px] overflow-y-auto">
             <div className="space-y-2">
               {patternHistory.map((event, index) => (
-                <PatternHistoryRow key={`${event.coin}-${event.timestamp}-${index}`} event={event} index={index} />
+                <PatternHistoryRow 
+                  key={`${event.coin}-${event.timestamp}-${index}-${event.pressure}`} 
+                  event={event} 
+                  index={index} 
+                />
               ))}
               {patternHistory.length === 0 && (
                 <div className="text-center text-gray-500 py-4">

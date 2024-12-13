@@ -12,7 +12,13 @@ interface PatternEvent {
 }
 
 export default function PatternHistoryRow({ event, index }: { event: PatternEvent; index: number }) {
-  const { pressure } = useTradesPressure(event.coin);
+  const tradePressure = useTradesPressure(event.coin);
+  
+  // Update the event's pressure when tradePressure changes
+  useEffect(() => {
+    event.pressure = tradePressure.pressure;
+  }, [tradePressure, event]);
+
   return (
     <div key={`${event.coin}-${event.timestamp}-${index}`} className="flex items-center justify-between gap-2 text-sm">
       <div className="flex items-center gap-2">
