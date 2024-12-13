@@ -66,6 +66,17 @@ export function useWebSocketCandles(
       }
       if (ws.current) {
         console.log("Closing Candles WebSocket connection");
+        if (ws.current.readyState === WebSocket.OPEN) {
+          const unsubscribeMessage: WsSubscription = {
+            method: "unsubscribe",
+            subscription: {
+              type: "candle",
+              coin: subscription.coin,
+              interval: subscription.interval,
+            },
+          };
+          ws.current.send(JSON.stringify(unsubscribeMessage));
+        }
         ws.current.close();
         ws.current = null;
       }

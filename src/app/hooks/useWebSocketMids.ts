@@ -57,13 +57,15 @@ export function useWebSocketMids(onMessage: (data: any) => void) {
       }
       if (ws.current) {
         console.log('Closing AllMids WebSocket connection');
-        const unsubscribeMessage: WsSubscription = {
-          method: 'unsubscribe',
-          subscription: {
-            type: 'allMids'
-          },
-        };
-        ws.current.send(JSON.stringify(unsubscribeMessage));
+        if (ws.current.readyState === WebSocket.OPEN) {
+          const unsubscribeMessage: WsSubscription = {
+            method: 'unsubscribe',
+            subscription: {
+              type: 'allMids'
+            },
+          };
+          ws.current.send(JSON.stringify(unsubscribeMessage));
+        }
         ws.current.close();
         ws.current = null;
       }
