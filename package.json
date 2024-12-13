@@ -2,12 +2,13 @@
  "name": "hypersignals",
  "version": "0.1.0",
  "private": true,
+ "type": "module",
  "scripts": {
   "dev": "next dev",
   "build": "next build",
   "start": "next start",
   "lint": "next lint",
-  "candle-service": "ts-node -r tsconfig-paths/register src/scripts/candleService.ts"
+  "candle-service": "NODE_OPTIONS='--loader ts-node/esm' ts-node --esm src/scripts/candleService.ts"
  },
  "dependencies": {
   "@heroicons/react": "^2.2.0",

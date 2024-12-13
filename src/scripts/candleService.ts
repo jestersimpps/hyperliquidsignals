@@ -1,5 +1,5 @@
-import { HyperliquidInfoAPI } from '@/hyperliquid/info';
-import { RedisService } from '@/lib/redis-service';
+import { HyperliquidInfoAPI } from '../hyperliquid-api/info.js';
+import { RedisService } from '../lib/redis-service.js';
 import WebSocket from 'ws';
 
 const SUPPORTED_INTERVALS = ['5m'];
