@@ -49,19 +49,17 @@ export default function PatternsPage() {
   const [candleData, setCandleData] = useState<Record<string, CandleData[]>>({});
 
   // Memoize the trendline message generator
-  const getTrendlineMessage = useCallback((line: Trendline, currentPrice?: number, pressure?: 'buy' | 'sell' | 'neutral') => {
+  const getTrendlineMessage = useCallback((line: Trendline, currentPrice?: number) => {
     if (!line.intersectionPrice || !currentPrice) return '';
-
-    const pressureText = pressure ? ` (${pressure} pressure detected)` : '';
 
     if (line.type === 'support') {
       return currentPrice < line.intersectionPrice
-        ? `Support broken - watch for further downside movement and potential retest from below${pressureText}`
-        : `Potential bounce zone - watch for buying pressure${pressureText}`;
+        ? 'Support broken - watch for further downside movement and potential retest from below'
+        : 'Potential bounce zone - watch for buying pressure';
     } else {
       return currentPrice > line.intersectionPrice
-        ? `Resistance broken - watch for continued upside movement and potential retest from above${pressureText}`
-        : `Potential reversal zone - watch for selling pressure${pressureText}`;
+        ? 'Resistance broken - watch for continued upside movement and potential retest from above'
+        : 'Potential reversal zone - watch for selling pressure';
     }
   }, []);
 
@@ -98,7 +96,7 @@ export default function PatternsPage() {
         type: line.type,
         price: line.intersectionPrice!,
         pressure: 'neutral',
-        message: getTrendlineMessage(line, currentPrice, tradePressure.pressure)
+        message: getTrendlineMessage(line, currentPrice)
       }));
 
       if (newEvents.length > 0) {
