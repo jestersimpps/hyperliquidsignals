@@ -64,11 +64,18 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
           displayFormats: {
             minute: 'HH:mm',
           },
+          tooltipFormat: 'HH:mm',
         },
         title: {
           display: true,
           text: 'Time',
         },
+        ticks: {
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 10,
+        },
+        distribution: 'linear',
       },
       y: {
         title: {
@@ -94,6 +101,9 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
           up: 'rgba(75, 192, 75, 1)',
           down: 'rgba(255, 99, 132, 1)',
         },
+        borderColor: '#000000',
+        borderWidth: 1,
+        barWidth: 6,
       }
     ],
   };
