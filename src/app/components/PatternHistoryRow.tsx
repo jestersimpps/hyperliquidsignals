@@ -12,7 +12,9 @@ interface PatternEvent {
   pressure?: 'buy' | 'sell' | 'neutral';
 }
 
-export default function PatternHistoryRow({ event, index }: { event: PatternEvent; index: number }) {
+import { memo } from 'react';
+
+export default memo(function PatternHistoryRow({ event, index }: { event: PatternEvent; index: number }) {
   const tradePressure = useTradesPressure(event.coin);
   
   // Update the event's pressure when tradePressure changes

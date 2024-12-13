@@ -194,7 +194,7 @@ export default function PatternsPage() {
             <div className="space-y-2">
               {patternHistory.map((event, index) => (
                 <PatternHistoryRow 
-                  key={`${event.coin}-${event.timestamp}-${index}-${event.pressure}`} 
+                  key={`${event.coin}-${event.timestamp}-${event.price}-${event.type}`} 
                   event={event} 
                   index={index} 
                 />
