@@ -53,7 +53,8 @@ export interface Notification {
 }
 
 export interface AllMids {
-  mids: Record<string, string>;
+  channel: 'allMids';
+  data: Record<string, string>;
 }
 
 export interface WsCandle {

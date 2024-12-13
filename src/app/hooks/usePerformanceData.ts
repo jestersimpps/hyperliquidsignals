@@ -52,12 +52,13 @@ export function usePerformanceData() {
 
   const handleWebSocketMessage = useCallback((message: any) => {
     console.log('Processing WebSocket message:', message);
-    if (message.channel === 'allMids' && typeof message.data === 'object') {
-      console.log('Updating data with new prices:', message.data);
+    if (message.channel === 'allMids') {
+      console.log('Updating data with new prices:', message);
       setData(prevData => {
         return prevData.map(item => {
-          if (message.data[item.coin]) {
-            const newMarkPrice = message.data[item.coin].toString();
+          const newPrice = message.data[item.coin];
+          if (newPrice) {
+            const newMarkPrice = newPrice;
             const priceChange = parseFloat(newMarkPrice) - parseFloat(item.prevDayPrice);
             const priceChangePercentage = (priceChange / parseFloat(item.prevDayPrice)) * 100;
             
