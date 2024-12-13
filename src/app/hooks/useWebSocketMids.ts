@@ -4,15 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { API_CONFIG } from "../api/config";
 import { WsSubscription } from "../../types/websocket";
 
-interface CandleSubscription {
- coin: string;
- interval: string;
-}
-
-export function useWebSocketCandles(
- onMessage: (data: any) => void,
- subscription: CandleSubscription
-) {
+export function useWebSocketMids(onMessage: (data: any) => void) {
  const ws = useRef<WebSocket | null>(null);
  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -22,13 +14,11 @@ export function useWebSocketCandles(
 
    ws.current.onopen = () => {
     console.log("WebSocket connected");
-    // Subscribe to candles
+    // Subscribe to allMids
     const message: WsSubscription = {
      method: "subscribe",
      subscription: {
-      type: "candle",
-      coin: subscription.coin,
-      interval: subscription.interval,
+      type: "allMids",
      },
     };
     ws.current?.send(JSON.stringify(message));
@@ -52,7 +42,7 @@ export function useWebSocketCandles(
     }, 5000);
    };
   }
- }, [onMessage, subscription]);
+ }, [onMessage]);
 
  useEffect(() => {
   connect();
