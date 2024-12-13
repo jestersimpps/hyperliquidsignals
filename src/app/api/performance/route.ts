@@ -1,30 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { AssetContext, MetaResponse } from '@/types/hyperliquid';
-import { HyperliquidInfoAPI } from '@/hyperliquid/info';
+import type { SpotMetaResponse, SpotAssetContext } from '@/types/hyperliquid';
+import { HyperliquidInfoAPI } from '@/hyperliquid-api/info';
 
 export async function GET(request: NextRequest) {
   try {
     const api = new HyperliquidInfoAPI();
-    const meta = await api.getMeta() as MetaResponse;
-    const assetCtx = await api.getAssetCtx() as AssetContext[];
+    const [meta, assetCtxs] = await api.getSpotMetaAndAssetCtxs();
 
-    const performanceData = meta.universe.map((asset) => {
-      const ctx = assetCtx.find((ctx, index) => index === asset.name);
-      if (!ctx) return null;
+    const performanceData = meta.tokens
+      .filter(token => token.isCanonical)
+      .map((token, index) => {
+        const ctx = assetCtxs[index];
+        if (!ctx) return null;
 
-      const markPrice = parseFloat(ctx.markPx);
-      const prevDayPrice = parseFloat(ctx.prevDayPx);
-      const priceChange = markPrice - prevDayPrice;
-      const priceChangePercentage = (priceChange / prevDayPrice) * 100;
+        const markPrice = parseFloat(ctx.markPx);
+        const prevDayPrice = parseFloat(ctx.prevDayPx);
+        const priceChange = markPrice - prevDayPrice;
+        const priceChangePercentage = (priceChange / prevDayPrice) * 100;
 
-      return {
-        coin: asset.name,
-        markPrice: ctx.markPx,
-        prevDayPrice: ctx.prevDayPx,
-        priceChange,
-        priceChangePercentage,
-      };
-    }).filter((item): item is NonNullable<typeof item> => item !== null);
+        return {
+          coin: token.name,
+          markPrice: ctx.markPx,
+          prevDayPrice: ctx.prevDayPx,
+          priceChange,
+          priceChangePercentage,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
     return NextResponse.json(performanceData);
   } catch (error) {
