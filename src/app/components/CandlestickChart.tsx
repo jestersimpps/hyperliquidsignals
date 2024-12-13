@@ -93,10 +93,11 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
         lineStyle: LineStyle.Dashed,
       });
 
-      const lineData = trendline.points.map(point => ({
-        time: point.time / 1000 as Time,
-        value: point.price,
-      }));
+      // Create line with just start and end points
+      const lineData = [
+        { time: trendline.start.time / 1000 as Time, value: trendline.start.price },
+        { time: trendline.end.time / 1000 as Time, value: trendline.end.price }
+      ];
 
       lineSeries.setData(lineData);
     });

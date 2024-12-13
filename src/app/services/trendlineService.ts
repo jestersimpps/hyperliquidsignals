@@ -4,80 +4,98 @@ interface Point {
 }
 
 interface Trendline {
-  points: Point[];
+  start: Point;
+  end: Point;
   type: 'support' | 'resistance';
+  strength: number;
 }
 
 export function findTrendlines(data: { time: number; high: number; low: number }[]): Trendline[] {
   const trendlines: Trendline[] = [];
-  const minPoints = 3; // Minimum points to form a trendline
-  const tolerance = 0.02; // 2% price deviation tolerance
-
-  // Find support lines (using lows)
-  for (let i = 0; i < data.length - minPoints; i++) {
-    const startPoint = { time: data[i].time, price: data[i].low };
-    let points = [startPoint];
-    
-    for (let j = i + 1; j < data.length; j++) {
-      const expectedPrice = calculateExpectedPrice(startPoint, 
-        { time: data[j].time, price: data[j].low }, 
-        data[j].time);
-      
-      if (Math.abs(data[j].low - expectedPrice) / expectedPrice <= tolerance) {
-        points.push({ time: data[j].time, price: data[j].low });
-      }
+  const minDistance = 5; // Minimum number of candles between points
+  const maxLines = 3; // Maximum number of lines per type
+  
+  // Find local maxima and minima
+  const peaks: Point[] = [];
+  const troughs: Point[] = [];
+  
+  for (let i = 2; i < data.length - 2; i++) {
+    // Peak detection
+    if (data[i].high > data[i-1].high && 
+        data[i].high > data[i-2].high && 
+        data[i].high > data[i+1].high && 
+        data[i].high > data[i+2].high) {
+      peaks.push({ time: data[i].time, price: data[i].high });
     }
-
-    if (points.length >= minPoints) {
-      trendlines.push({ points, type: 'support' });
+    
+    // Trough detection
+    if (data[i].low < data[i-1].low && 
+        data[i].low < data[i-2].low && 
+        data[i].low < data[i+1].low && 
+        data[i].low < data[i+2].low) {
+      troughs.push({ time: data[i].time, price: data[i].low });
     }
   }
 
-  // Find resistance lines (using highs)
-  for (let i = 0; i < data.length - minPoints; i++) {
-    const startPoint = { time: data[i].time, price: data[i].high };
-    let points = [startPoint];
-    
-    for (let j = i + 1; j < data.length; j++) {
-      const expectedPrice = calculateExpectedPrice(startPoint,
-        { time: data[j].time, price: data[j].high },
-        data[j].time);
-      
-      if (Math.abs(data[j].high - expectedPrice) / expectedPrice <= tolerance) {
-        points.push({ time: data[j].time, price: data[j].high });
+  // Find resistance lines connecting peaks
+  for (let i = 0; i < peaks.length - 1; i++) {
+    for (let j = i + 1; j < peaks.length; j++) {
+      if ((peaks[j].time - peaks[i].time) / (1000 * 60) >= minDistance) {
+        const line = {
+          start: peaks[i],
+          end: peaks[j],
+          type: 'resistance' as const,
+          strength: calculateLineStrength(peaks[i], peaks[j], data, 'resistance')
+        };
+        trendlines.push(line);
       }
-    }
-
-    if (points.length >= minPoints) {
-      trendlines.push({ points, type: 'resistance' });
     }
   }
 
-  // Filter out overlapping trendlines
-  return filterOverlappingTrendlines(trendlines);
+  // Find support lines connecting troughs
+  for (let i = 0; i < troughs.length - 1; i++) {
+    for (let j = i + 1; j < troughs.length; j++) {
+      if ((troughs[j].time - troughs[i].time) / (1000 * 60) >= minDistance) {
+        const line = {
+          start: troughs[i],
+          end: troughs[j],
+          type: 'support' as const,
+          strength: calculateLineStrength(troughs[i], troughs[j], data, 'support')
+        };
+        trendlines.push(line);
+      }
+    }
+  }
+
+  // Sort by strength and filter
+  return filterBestLines(trendlines, maxLines);
 }
 
-function calculateExpectedPrice(start: Point, end: Point, targetTime: number): number {
+function calculateLineStrength(start: Point, end: Point, data: { time: number; high: number; low: number }[], type: 'support' | 'resistance'): number {
   const slope = (end.price - start.price) / (end.time - start.time);
-  return start.price + slope * (targetTime - start.time);
-}
+  let touchPoints = 0;
+  const tolerance = 0.003; // 0.3% tolerance
 
-function filterOverlappingTrendlines(trendlines: Trendline[]): Trendline[] {
-  return trendlines.filter((trendline, index) => {
-    // Keep only trendlines that don't overlap significantly with previous ones
-    for (let i = 0; i < index; i++) {
-      const overlap = calculateOverlap(trendline, trendlines[i]);
-      if (overlap > 0.7) { // 70% overlap threshold
-        return false;
+  data.forEach(candle => {
+    if (candle.time > start.time && candle.time < end.time) {
+      const expectedPrice = start.price + slope * (candle.time - start.time);
+      const price = type === 'resistance' ? candle.high : candle.low;
+      if (Math.abs(price - expectedPrice) / expectedPrice <= tolerance) {
+        touchPoints++;
       }
     }
-    return true;
   });
+
+  return touchPoints;
 }
 
-function calculateOverlap(line1: Trendline, line2: Trendline): number {
-  const timeRange1 = new Set(line1.points.map(p => p.time));
-  const timeRange2 = new Set(line2.points.map(p => p.time));
-  const intersection = new Set([...timeRange1].filter(x => timeRange2.has(x)));
-  return intersection.size / Math.min(timeRange1.size, timeRange2.size);
+function filterBestLines(trendlines: Trendline[], maxLines: number): Trendline[] {
+  // Sort by strength (number of touch points)
+  const sorted = trendlines.sort((a, b) => b.strength - a.strength);
+  
+  // Get top resistance and support lines
+  const resistance = sorted.filter(line => line.type === 'resistance').slice(0, maxLines);
+  const support = sorted.filter(line => line.type === 'support').slice(0, maxLines);
+  
+  return [...resistance, ...support];
 }
