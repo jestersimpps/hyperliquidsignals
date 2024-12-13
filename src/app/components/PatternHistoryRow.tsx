@@ -62,7 +62,9 @@ export default function PatternHistoryRow({ event, index }: { event: PatternEven
                     : 'bg-gray-500'
               }`}
               style={{ 
-                width: `${event.pressure === 'buy' ? '60%' : event.pressure === 'sell' ? '40%' : '50%'}`
+                width: `${tradePressure.buyVolume + tradePressure.sellVolume > 0 
+                  ? (tradePressure.buyVolume / (tradePressure.buyVolume + tradePressure.sellVolume) * 100) 
+                  : 50}%`
               }}
             />
           </div>
