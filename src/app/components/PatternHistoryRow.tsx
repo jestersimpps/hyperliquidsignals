@@ -74,4 +74,4 @@ export default memo(function PatternHistoryRow({ event, index }: { event: Patter
       )}
     </div>
   );
-}
+});
