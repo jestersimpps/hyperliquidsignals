@@ -12,8 +12,7 @@ export function useVolumeData() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
+  const fetchData = useCallback(async () => {
       try {
         const response = await fetch('/api/volume');
         if (!response.ok) throw new Error('Failed to fetch volume data');
@@ -27,7 +26,7 @@ export function useVolumeData() {
     }
 
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  return { data, isLoading, error };
+  return { data, isLoading, error, refresh: fetchData };
 }

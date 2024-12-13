@@ -22,8 +22,10 @@ ChartJS.register(
 
 import { useVolumeData } from '../hooks/useVolumeData';
 
+import { ArrowPathIcon } from '@heroicons/react/20/solid';
+
 export default function VolumeChart() {
-  const { data, isLoading, error } = useVolumeData();
+  const { data, isLoading, error, refresh } = useVolumeData();
 
   if (isLoading) {
     return <div className="w-full max-w-4xl h-[400px] flex items-center justify-center">Loading...</div>;
@@ -94,8 +96,20 @@ export default function VolumeChart() {
   };
 
   return (
-    <div className="w-full max-w-4xl h-[400px]">
+    <div className="w-full max-w-4xl">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => refresh()}
+          className="inline-flex items-center px-3 py-2 border border-black/[.1] dark:border-white/[.1] rounded-md text-sm font-medium hover:bg-black/[.05] dark:hover:bg-white/[.05] transition-colors"
+          disabled={isLoading}
+        >
+          <ArrowPathIcon className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+      <div className="w-full h-[400px]">
       <Bar options={options} data={chartData} />
+      </div>
     </div>
   );
 }
