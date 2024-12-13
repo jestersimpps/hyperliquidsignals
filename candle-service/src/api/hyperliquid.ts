@@ -16,12 +16,10 @@ export class HyperliquidAPI {
   async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<any[]> {
     return this.post(this.baseUrl, {
       type: 'candleSnapshot',
-      req: {
-        coin,
-        interval,
-        startTime,
-        endTime
-      }
+      coin,
+      interval,
+      startTime,
+      endTime
     });
   }
 }
