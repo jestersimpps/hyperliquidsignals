@@ -1,9 +1,19 @@
 'use client';
 
-import { usePerformanceData } from '../hooks/usePerformanceData';
+import { usePerformanceData, type SortField } from '../hooks/usePerformanceData';
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 
 export default function PerformanceOverview() {
-  const { data, isLoading, error } = usePerformanceData();
+  const { data: sortedData, isLoading, error, sortConfig, requestSort } = usePerformanceData();
+
+  const getSortIcon = (field: SortField) => {
+    if (sortConfig.field !== field) return null;
+    return sortConfig.direction === 'asc' ? (
+      <ChevronUpIcon className="w-4 h-4 inline-block ml-1" />
+    ) : (
+      <ChevronDownIcon className="w-4 h-4 inline-block ml-1" />
+    );
+  };
 
   if (isLoading) {
     return <div className="w-full flex items-center justify-center p-4">Loading...</div>;
@@ -18,14 +28,34 @@ export default function PerformanceOverview() {
       <table className="min-w-full divide-y divide-black/[.1] dark:divide-white/[.1]">
         <thead>
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pair</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">24h Change</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">24h %</th>
+            <th 
+              className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={() => requestSort('coin')}
+            >
+              Pair {getSortIcon('coin')}
+            </th>
+            <th 
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={() => requestSort('markPrice')}
+            >
+              Price {getSortIcon('markPrice')}
+            </th>
+            <th 
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={() => requestSort('priceChange')}
+            >
+              24h Change {getSortIcon('priceChange')}
+            </th>
+            <th 
+              className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={() => requestSort('priceChangePercentage')}
+            >
+              24h % {getSortIcon('priceChangePercentage')}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-black/[.1] dark:divide-white/[.1]">
-          {data.map((item) => (
+          {sortedData.map((item) => (
             <tr key={item.coin}>
               <td className="px-6 py-4 whitespace-nowrap text-sm">{item.coin}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
