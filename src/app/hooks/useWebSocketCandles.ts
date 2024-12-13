@@ -25,5 +25,5 @@ export function useWebSocketCandles(
         }
       }));
     }
-  }, [coin, ws.current?.readyState]);
+  }, [coin]);
 }
