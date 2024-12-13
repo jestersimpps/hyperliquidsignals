@@ -56,7 +56,7 @@ export function usePerformanceData() {
       console.log('Updating data with new prices:', message);
       setData(prevData => {
         return prevData.map(item => {
-          const newPrice = message.data[item.coin];
+          const newPrice = message.data.mids[item.coin];
           if (newPrice) {
             const newMarkPrice = newPrice;
             const priceChange = parseFloat(newMarkPrice) - parseFloat(item.prevDayPrice);
