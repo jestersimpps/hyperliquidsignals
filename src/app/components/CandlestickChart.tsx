@@ -144,6 +144,8 @@ export default function CandlestickChart({
     };
   }, [data, isLoading]);
 
+  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
+
   const handleCandleUpdate = useCallback((wsCandle: WsCandle) => {
     if (!candlestickSeriesRef.current) return;
 
@@ -169,9 +171,7 @@ export default function CandlestickChart({
       const newTrendlines = findTrendlines(updatedData);
       onTrendlinesUpdate(newTrendlines);
     }
-  }, []);
-
-  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
+  }, [liveData, onTrendlinesUpdate]);
 
   useEffect(() => {
     if (!liveData.length) return;
@@ -187,9 +187,7 @@ export default function CandlestickChart({
       v: '0',
       n: 0
     });
-  }, [liveData]);
-
-  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
+  }, [liveData, handleCandleUpdate]);
 
   if (isLoading || liveDataLoading) {
     return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
