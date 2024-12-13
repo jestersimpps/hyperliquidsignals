@@ -209,15 +209,31 @@ export default function PatternsPage() {
                   <span className="text-gray-500">
                     {event.message}
                     {event.pressure && (
-                      <span className={`ml-2 ${
-                        event.pressure === 'buy' 
-                          ? 'text-green-500' 
-                          : event.pressure === 'sell' 
-                            ? 'text-red-500' 
-                            : 'text-gray-500'
-                      }`}>
-                        ({event.pressure} pressure)
-                      </span>
+                      <>
+                        <span className={`ml-2 ${
+                          event.pressure === 'buy' 
+                            ? 'text-green-500' 
+                            : event.pressure === 'sell' 
+                              ? 'text-red-500' 
+                              : 'text-gray-500'
+                        }`}>
+                          ({event.pressure} pressure)
+                        </span>
+                        <div className="inline-flex items-center ml-2 bg-gray-200 dark:bg-gray-800 rounded h-2 w-20">
+                          <div 
+                            className={`h-full rounded ${
+                              event.pressure === 'buy' 
+                                ? 'bg-green-500' 
+                                : event.pressure === 'sell'
+                                  ? 'bg-red-500'
+                                  : 'bg-gray-500'
+                            }`}
+                            style={{ 
+                              width: `${event.pressure === 'buy' ? '60%' : event.pressure === 'sell' ? '40%' : '50%'}`
+                            }}
+                          />
+                        </div>
+                      </>
                     )}
                   </span>
                 </div>
