@@ -19,7 +19,7 @@ export function useTradesPressure(coin: string) {
   });
 
   const ws = useCallback((onMessage: (data: any) => void) => {
-    const socket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL || 'wss://api.hyperliquid.xyz/ws');
+    const socket = new WebSocket('wss://api.hyperliquid.xyz/ws');
 
     socket.onopen = () => {
       console.log('Trade WebSocket connected');
@@ -64,14 +64,19 @@ export function useTradesPressure(coin: string) {
     let trades: Array<{ timestamp: number; volume: number }> = [];
 
     const cleanup = ws((message: WsResponse<any>) => {
-      const trade = message.data;
-      const volume = parseFloat(trade.sz);
-      const isBuy = trade.isBuy || trade.side === 'B';
+      if (!Array.isArray(message.data)) return;
       
-      // Add new trade
-      trades.push({
-        timestamp: Date.now(),
-        volume: isBuy ? volume : -volume
+      message.data.forEach(trade => {
+        if (trade.coin !== coin) return;
+        
+        const volume = parseFloat(trade.sz);
+        const isBuy = trade.side === 'B';
+      
+        // Add new trade
+        trades.push({
+          timestamp: Date.now(),
+          volume: isBuy ? volume : -volume
+        });
       });
 
       // Remove trades older than window size
