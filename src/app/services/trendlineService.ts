@@ -53,6 +53,7 @@ export function findTrendlines(data: { time: number; high: number; low: number }
       const slope = calculateSlope(xs, ys);
       const intercept = calculateIntercept(xs, ys, slope);
       
+      const intersection = checkIntersection(data[data.length - 1], slope, intercept);
       const line = {
         start: { 
           time: chunk[0].time,
@@ -64,7 +65,8 @@ export function findTrendlines(data: { time: number; high: number; low: number }
         },
         type: 'support' as const,
         strength: calculateLineStrength(supportPoints, chunk, slope, intercept),
-        isIntersecting: checkIntersection(data[data.length - 1], slope, intercept)
+        isIntersecting: intersection !== false,
+        intersectionPrice: intersection !== false ? intersection : undefined
       };
       trendlines.push(line);
     }
@@ -75,6 +77,7 @@ export function findTrendlines(data: { time: number; high: number; low: number }
       const slope = calculateSlope(xs, ys);
       const intercept = calculateIntercept(xs, ys, slope);
       
+      const intersection = checkIntersection(data[data.length - 1], slope, intercept);
       const line = {
         start: { 
           time: chunk[0].time,
@@ -86,7 +89,8 @@ export function findTrendlines(data: { time: number; high: number; low: number }
         },
         type: 'resistance' as const,
         strength: calculateLineStrength(resistancePoints, chunk, slope, intercept),
-        isIntersecting: checkIntersection(data[data.length - 1], slope, intercept)
+        isIntersecting: intersection !== false,
+        intersectionPrice: intersection !== false ? intersection : undefined
       };
       trendlines.push(line);
     }
