@@ -24,7 +24,16 @@ interface Trendline {
   strength: number;
 }
 
+interface PatternEvent {
+  coin: string;
+  timestamp: number;
+  type: 'support' | 'resistance';
+  price: number;
+  message: string;
+}
+
 export default function PatternsPage() {
+  const [patternHistory, setPatternHistory] = useState<PatternEvent[]>([]);
   const [topPairs, setTopPairs] = useState<VolumeData[]>([]);
   const [trendlineMap, setTrendlineMap] = useState<Record<string, Trendline[]>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +67,22 @@ export default function PatternsPage() {
       if (JSON.stringify(prev[coin]) === JSON.stringify(trendlines)) {
         return prev;
       }
+
+      // Add new pattern events for intersecting trendlines
+      const newEvents = trendlines
+        .filter(line => line.isIntersecting && line.intersectionPrice)
+        .map(line => ({
+          coin,
+          timestamp: Date.now(),
+          type: line.type,
+          price: line.intersectionPrice!,
+          message: getTrendlineMessage(line, line.intersectionPrice)
+        }));
+
+      if (newEvents.length > 0) {
+        setPatternHistory(prev => [...newEvents, ...prev]);
+      }
+
       return {
         ...prev,
         [coin]: trendlines
@@ -81,7 +106,42 @@ export default function PatternsPage() {
 
   return (
     <div className="w-full h-[calc(100vh-64px)] p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
+      <div className="mb-4">
+        <Card
+          title="Recent Pattern Signals"
+          description="Historical pattern signals across all pairs"
+        >
+          <div className="max-h-[200px] overflow-y-auto">
+            <div className="space-y-2">
+              {patternHistory.map((event, index) => (
+                <div key={index} className="flex items-center gap-2 text-sm">
+                  <div 
+                    className={`w-2 h-2 rounded-full ${
+                      event.type === 'support' 
+                        ? 'bg-[rgb(22,199,132)]'
+                        : 'bg-[rgb(255,99,132)]'
+                    }`} 
+                  />
+                  <span className="font-medium">{event.coin}</span>
+                  <span className="text-gray-500">
+                    {new Date(event.timestamp).toLocaleTimeString()}
+                  </span>
+                  <span>
+                    {event.type === 'support' ? 'Support' : 'Resistance'} at ${event.price.toFixed(2)}
+                  </span>
+                  <span className="text-gray-500">{event.message}</span>
+                </div>
+              ))}
+              {patternHistory.length === 0 && (
+                <div className="text-center text-gray-500 py-4">
+                  No pattern signals detected yet
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {topPairs.map((pair) => (
           <Card 
             key={pair.coin}
