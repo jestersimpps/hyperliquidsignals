@@ -5,66 +5,64 @@ import { API_CONFIG } from "../api/config";
 import { WsSubscription } from "../../types/websocket";
 
 interface CandleSubscription {
- coin: string;
- interval: string;
+  coin: string;
+  interval: string;
 }
 
 export function useWebSocketCandles(
- onMessage: (data: any) => void,
- subscription: CandleSubscription
+  onMessage: (data: any) => void,
+  subscription: CandleSubscription
 ) {
- const ws = useRef<WebSocket | null>(null);
- const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const ws = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
- const connect = useCallback(() => {
-  if (ws.current?.readyState !== WebSocket.OPEN) {
-   ws.current = new WebSocket(API_CONFIG.WEBSOCKET_URL);
+  const connect = useCallback(() => {
+    if (ws.current?.readyState !== WebSocket.OPEN) {
+      ws.current = new WebSocket(API_CONFIG.WEBSOCKET_URL);
 
-   ws.current.onopen = () => {
-    console.log("WebSocket connected");
-    // Subscribe to candles
-    const message: WsSubscription = {
-     method: "subscribe",
-     subscription: {
-      type: "candle",
-      coin: subscription.coin,
-      interval: subscription.interval,
-     },
+      ws.current.onopen = () => {
+        console.log("Candles WebSocket connected");
+        const message: WsSubscription = {
+          method: "subscribe",
+          subscription: {
+            type: "candle",
+            coin: subscription.coin,
+            interval: subscription.interval,
+          },
+        };
+        ws.current?.send(JSON.stringify(message));
+      };
+
+      ws.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        onMessage(data);
+      };
+
+      ws.current.onerror = (error) => {
+        console.error("Candles WebSocket error:", error);
+      };
+
+      ws.current.onclose = () => {
+        console.log("Candles WebSocket disconnected, attempting to reconnect...");
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, 5000);
+      };
+    }
+  }, [onMessage, subscription]);
+
+  useEffect(() => {
+    connect();
+
+    return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (ws.current) {
+        console.log("Closing Candles WebSocket connection");
+        ws.current.close();
+        ws.current = null;
+      }
     };
-    ws.current?.send(JSON.stringify(message));
-   };
-
-   ws.current.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log("WebSocket message received:", data);
-    onMessage(data);
-   };
-
-   ws.current.onerror = (error) => {
-    console.error("WebSocket error:", error);
-   };
-
-   ws.current.onclose = () => {
-    console.log("WebSocket disconnected, attempting to reconnect...");
-    // Attempt to reconnect after 5 seconds
-    reconnectTimeoutRef.current = setTimeout(() => {
-     connect();
-    }, 5000);
-   };
-  }
- }, [onMessage, subscription]);
-
- useEffect(() => {
-  connect();
-
-  return () => {
-   if (reconnectTimeoutRef.current) {
-    clearTimeout(reconnectTimeoutRef.current);
-   }
-   if (ws.current) {
-    ws.current.close();
-    ws.current = null;
-   }
-  };
- }, [connect]);
+  }, [connect]);
 }
