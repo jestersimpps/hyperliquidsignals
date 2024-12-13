@@ -20,7 +20,7 @@ export function usePerformanceData() {
   const [sortConfig, setSortConfig] = useState<{
     field: SortField;
     direction: SortDirection;
-  }>({ field: 'priceChange', direction: 'desc' });
+  }>({ field: 'priceChangePercentage', direction: 'desc' });
 
   const sortedData = useMemo(() => {
     const sortedArray = [...data];
