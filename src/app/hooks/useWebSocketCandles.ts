@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { API_CONFIG } from "../api/config";
 import { WsSubscriptionMessage, WsResponse, WsCandleData } from "../../types/hyperliquid-ws";
+import { WsSubscription } from "@/types/websocket";
 
 interface CandleSubscription {
   coin: string;
