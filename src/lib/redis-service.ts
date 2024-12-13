@@ -8,8 +8,14 @@ interface CandleData {
  close: number;
 }
 
+interface VolumeData {
+ coin: string;
+ volume: string;
+}
+
 export class RedisService {
  private static readonly CANDLE_EXPIRY = 300; // 5 minutes
+ private static readonly VOLUME_EXPIRY = 60; // 1 minute
 
  static async getCandleData(
   coin: string,
@@ -35,6 +41,23 @@ export class RedisService {
    high: parseFloat(candle[2]),
    low: parseFloat(candle[3]),
    close: parseFloat(candle[4]),
+  }));
+ }
+
+ static async getVolumeData(coin?: string): Promise<VolumeData[] | null> {
+  const cacheKey = coin ? `volume:${coin}` : 'volume:all';
+  return await getCachedData<VolumeData[]>(cacheKey);
+ }
+
+ static async setVolumeData(data: VolumeData[], coin?: string): Promise<void> {
+  const cacheKey = coin ? `volume:${coin}` : 'volume:all';
+  await setCachedData(cacheKey, data, this.VOLUME_EXPIRY);
+ }
+
+ static transformVolumeData(rawData: any[]): VolumeData[] {
+  return rawData.map((item) => ({
+   coin: item.coin,
+   volume: item.volume,
   }));
  }
 }
