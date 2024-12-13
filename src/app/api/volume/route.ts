@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HyperliquidInfoAPI } from '@/hyperliquid/info';
+import { HyperliquidInfoAPI } from '@/hyperliquid-api/info';
+import type { AssetContext } from '@/types/hyperliquid';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const coin = searchParams.get('coin') || undefined;
-
     const api = new HyperliquidInfoAPI();
-    const volumeData = await api.getVolume(coin);
+    const assetCtx = await api.getAssetCtx() as AssetContext[];
+
+    const volumeData = assetCtx.map((ctx, index) => ({
+      coin: index.toString(),
+      volume: ctx.dayNtlVlm,
+    }));
 
     return NextResponse.json(volumeData);
   } catch (error) {

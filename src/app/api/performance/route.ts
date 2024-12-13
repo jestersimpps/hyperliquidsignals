@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HyperliquidInfoAPI } from '@/hyperliquid/info';
+import { HyperliquidInfoAPI } from '@/hyperliquid-api/info';
+import type { AssetContext, MetaResponse } from '@/types/hyperliquid';
 
 export async function GET(request: NextRequest) {
   try {
     const api = new HyperliquidInfoAPI();
-    const meta = await api.getMeta();
-    const assetCtx = await api.getAssetCtx();
+    const meta = await api.getMeta() as MetaResponse;
+    const assetCtx = await api.getAssetCtx() as AssetContext[];
 
     const performanceData = meta.universe.map((asset) => {
-      const ctx = assetCtx.find((ctx) => ctx.name === asset.name);
+      const ctx = assetCtx.find((ctx, index) => index === asset.name);
       if (!ctx) return null;
 
       const markPrice = parseFloat(ctx.markPx);
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
         priceChange,
         priceChangePercentage,
       };
-    }).filter(Boolean);
+    }).filter((item): item is NonNullable<typeof item> => item !== null);
 
     return NextResponse.json(performanceData);
   } catch (error) {
