@@ -32,7 +32,7 @@ export default function PatternsPage() {
         const sortedPairs = volumeData
           .sort((a: VolumeData, b: VolumeData) => 
             parseFloat(b.volume) - parseFloat(a.volume))
-          .slice(0, 10);
+          .slice(0, 18);
         setTopPairs(sortedPairs);
 
         setIsLoading(false);
