@@ -14,7 +14,7 @@ interface Trendline {
 export function findTrendlines(data: { time: number; high: number; low: number }[]): Trendline[] {
   const trendlines: Trendline[] = [];
   const maxLines = 3;
-  const numChunks = 5;
+  const numChunks = 3;
   const chunkSize = Math.floor(data.length / numChunks);
   
   // Process each chunk
