@@ -39,6 +39,16 @@ export default function PatternsPage() {
   const [trendlineMap, setTrendlineMap] = useState<Record<string, Trendline[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 
+  // Subscribe to candle data updates for each coin
+  useEffect(() => {
+    topPairs.forEach(pair => {
+      const { data, setData } = useCandleData(pair.coin);
+      if (data?.length) {
+        calculateTrendlines(pair.coin, data);
+      }
+    });
+  }, [topPairs, calculateTrendlines]);
+
   useEffect(() => {
     async function fetchData() {
       try {
