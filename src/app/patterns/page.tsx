@@ -83,10 +83,12 @@ export default function PatternsPage() {
     <div className="w-full h-[calc(100vh-64px)] p-4">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
         {topPairs.map((pair) => (
-          <Card key={pair.coin}>
+          <Card 
+            key={pair.coin}
+            title={`${pair.coin.toUpperCase()} Analysis`}
+            description={`24h Volume: ${Number(pair.volume).toLocaleString()} USDC`}
+          >
             <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">{pair.coin.toUpperCase()} Analysis</h2>
-              <p className="text-sm text-muted-foreground">
                 24h Volume: {Number(pair.volume).toLocaleString()} USDC
               </p>
               <div className="flex flex-col gap-4">
