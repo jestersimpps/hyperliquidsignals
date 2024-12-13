@@ -21,6 +21,7 @@ export default function PatternsPage() {
   const [topPairs, setTopPairs] = useState<VolumeData[]>([]);
   const [candleData, setCandleData] = useState<Record<string, CandleData[]>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [trendlineMap, setTrendlineMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     async function fetchData() {
@@ -70,9 +71,15 @@ export default function PatternsPage() {
                   coin={pair.coin}
                   data={candleData[pair.coin] || []}
                   isLoading={isLoading}
+                  onTrendlinesUpdate={(trendlines) => {
+                    setTrendlineMap(prev => ({
+                      ...prev,
+                      [pair.coin]: trendlines
+                    }));
+                  }}
                 />
                 <div className="space-y-2 text-sm">
-                  {trendlines.map((line, index) => line.isIntersecting && (
+                  {trendlineMap[pair.coin]?.map((line, index) => line.isIntersecting && (
                     <div key={index} className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${
                         line.type === 'support' ? 'bg-[rgb(75,192,192)]' : 'bg-[rgb(255,99,132)]'

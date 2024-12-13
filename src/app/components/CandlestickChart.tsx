@@ -18,7 +18,23 @@ interface CandlestickChartProps {
   isLoading: boolean;
 }
 
-export default function CandlestickChart({ coin, data, isLoading }: CandlestickChartProps) {
+interface Trendline {
+  start: { time: number; price: number };
+  end: { time: number; price: number };
+  type: 'support' | 'resistance';
+  strength: number;
+  isIntersecting?: boolean;
+  intersectionPrice?: number;
+}
+
+export default function CandlestickChart({ 
+  coin, 
+  data, 
+  isLoading,
+  onTrendlinesUpdate
+}: CandlestickChartProps & { 
+  onTrendlinesUpdate?: (trendlines: Trendline[]) => void 
+}) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
 
@@ -82,8 +98,11 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
 
     candlestickSeries.setData(formattedData);
 
-    // Add trendlines
+    // Add trendlines and notify parent
     const trendlines = findTrendlines(data);
+    if (onTrendlinesUpdate) {
+      onTrendlinesUpdate(trendlines);
+    }
     trendlines.forEach((trendline) => {
       const lineSeries = chart.addLineSeries({
         color: trendline.type === 'support' ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)',
