@@ -57,7 +57,7 @@ export function usePerformanceData() {
   }));
  };
 
- const handleWebSocketMessage = useCallback((message: any) => {
+ const handleWebSocketMessage = useCallback((message: { channel: string; data: { mids: Record<string, string> } }) => {
   console.log("Processing WebSocket message:", message);
   if (message.channel === "allMids") {
    console.log("Updating data with new prices:", message);

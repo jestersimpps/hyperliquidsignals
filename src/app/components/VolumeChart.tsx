@@ -56,7 +56,7 @@ export default function VolumeChart() {
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
+          label: (context: { raw: number }) => {
             const value = context.raw;
             return `Volume: $${value.toLocaleString('en-US', { 
               minimumFractionDigits: 0,
@@ -76,7 +76,7 @@ export default function VolumeChart() {
       },
       y: {
         ticks: {
-          callback: (value: any) => {
+          callback: (value: number) => {
             return `$${(value / 1000000).toFixed(1)}M`;
           },
         },

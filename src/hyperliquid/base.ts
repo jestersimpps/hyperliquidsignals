@@ -1,5 +1,5 @@
 export class BaseAPI {
-  protected async post(url: string, body: any): Promise<any> {
+  protected async post<T>(url: string, body: Record<string, unknown>): Promise<T> {
     const response = await fetch(url, {
       method: 'POST',
       headers: {

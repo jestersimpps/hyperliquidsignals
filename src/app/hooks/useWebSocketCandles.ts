@@ -11,7 +11,7 @@ interface CandleSubscription {
 }
 
 export function useWebSocketCandles(
-  onMessage: (data: any) => void,
+  onMessage: (data: { channel: string; data: WsCandleData[] }) => void,
   subscription: CandleSubscription
 ) {
   const ws = useRef<WebSocket | null>(null);

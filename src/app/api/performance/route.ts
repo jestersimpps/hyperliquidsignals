@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { HyperliquidInfoAPI } from "@/hyperliquid/info";
 import { RedisService } from "@/lib/redis-service";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
  try {
   // Try to get data from cache
   const cachedData = await RedisService.getPerformanceData();
