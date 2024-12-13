@@ -34,8 +34,14 @@ export function useWebSocketCandles(
       };
 
       ws.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        onMessage(data);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.channel === "candle" && data.data) {
+            onMessage(data);
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
       };
 
       ws.current.onerror = (error) => {

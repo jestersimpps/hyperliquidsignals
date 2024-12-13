@@ -14,7 +14,6 @@ export function useWebSocketMids(onMessage: (data: any) => void) {
 
       ws.current.onopen = () => {
         console.log('WebSocket connected');
-        // Subscribe to allMids
         const message: WsSubscription = {
           method: 'subscribe',
           subscription: {
@@ -25,9 +24,14 @@ export function useWebSocketMids(onMessage: (data: any) => void) {
       };
 
       ws.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log('WebSocket message received:', data);
-        onMessage(data);
+        try {
+          const data = JSON.parse(event.data);
+          if (data.channel === "allMids" && data.data?.mids) {
+            onMessage(data);
+          }
+        } catch (error) {
+          console.error("Error parsing WebSocket message:", error);
+        }
       };
 
       ws.current.onerror = (error) => {
