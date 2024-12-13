@@ -51,7 +51,9 @@ export function usePerformanceData() {
   };
 
   const handleWebSocketMessage = useCallback((message: any) => {
+    console.log('Processing WebSocket message:', message);
     if (message.channel === 'allMids' && typeof message.data === 'object') {
+      console.log('Updating data with new prices:', message.data);
       setData(prevData => {
         return prevData.map(item => {
           if (message.data[item.coin]) {

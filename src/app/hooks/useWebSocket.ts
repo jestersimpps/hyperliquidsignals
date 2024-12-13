@@ -24,6 +24,7 @@ export function useWebSocket(onMessage: (data: any) => void) {
 
       ws.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        console.log('WebSocket message received:', data);
         onMessage(data);
       };
 
