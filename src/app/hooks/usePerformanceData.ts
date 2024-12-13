@@ -66,5 +66,5 @@ export function usePerformanceData() {
     fetchData();
   }, []);
 
-  return { data, isLoading, error };
+  return { data: sortedData, isLoading, error, sortConfig, requestSort };
 }
