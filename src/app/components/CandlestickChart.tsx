@@ -36,6 +36,27 @@ export default function CandlestickChart({ coin, data, isLoading }: CandlestickC
       },
       width: chartContainerRef.current.clientWidth,
       height: 300,
+      rightPriceScale: {
+        borderVisible: false,
+      },
+      watermark: {
+        visible: false,
+      },
+      crosshair: {
+        horzLine: {
+          visible: true,
+          labelVisible: true,
+        },
+        vertLine: {
+          visible: true,
+          labelVisible: true,
+        },
+      },
+      title: {
+        text: `${coin.toUpperCase()} Price Chart`,
+        visible: true,
+        color: '#D9D9D9',
+      },
     });
 
     // Create the candlestick series
