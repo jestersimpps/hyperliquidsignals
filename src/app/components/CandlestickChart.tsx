@@ -123,8 +123,6 @@ export default function CandlestickChart({
     };
   }, [data, trendlines]); // Include both data and trendlines as dependencies
 
-  const isLoading = propsLoading || dataLoading;
-
   if (isLoading) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
