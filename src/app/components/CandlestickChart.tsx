@@ -1,10 +1,9 @@
 'use client';
 
-import { createChart, ColorType, Time, LineStyle, ISeriesApi, CandlestickData } from 'lightweight-charts';
-import { useEffect, useRef, useCallback } from 'react';
+import { createChart, ColorType, Time, LineStyle, IChartApi } from 'lightweight-charts';
+import { useEffect, useRef, useMemo } from 'react';
 import { useCandleData } from '../hooks/useCandleData';
 import { findTrendlines } from '../services/trendlineService';
-import { WsCandle } from '@/types/websocket';
 
 interface CandlestickChartProps {
   coin: string;
@@ -12,9 +11,14 @@ interface CandlestickChartProps {
   onTrendlinesUpdate?: (trendlines: Trendline[]) => void;
 }
 
+interface Point {
+  time: number;
+  price: number;
+}
+
 interface Trendline {
-  start: { time: number; price: number };
-  end: { time: number; price: number };
+  start: Point;
+  end: Point;
   type: 'support' | 'resistance';
   strength: number;
   isIntersecting?: boolean;
@@ -23,20 +27,30 @@ interface Trendline {
 
 export default function CandlestickChart({ 
   coin, 
-  isLoading,
-  onTrendlinesUpdate
+  isLoading: propsLoading,
+  onTrendlinesUpdate 
 }: CandlestickChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<any>(null);
-  const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'>>();
-  
-  // Move this up before any useEffect that depends on it
-  const { data: liveData, isLoading: liveDataLoading } = useCandleData(coin, '5m');
+  const chartRef = useRef<IChartApi | null>(null);
+  const { data, isLoading: dataLoading } = useCandleData(coin, '5m');
 
+  // Calculate trendlines only when data changes
+  const trendlines = useMemo(() => {
+    if (!data?.length) return [];
+    return findTrendlines(data);
+  }, [data]);
+
+  // Notify parent component of trendlines update
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || !liveData.length) return;
+    if (onTrendlinesUpdate && trendlines.length > 0) {
+      onTrendlinesUpdate(trendlines);
+    }
+  }, [trendlines, onTrendlinesUpdate]);
 
-    // Create the chart
+  // Initialize chart
+  useEffect(() => {
+    if (!chartContainerRef.current || !data?.length) return;
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
@@ -51,29 +65,14 @@ export default function CandlestickChart({
       rightPriceScale: {
         borderVisible: false,
       },
-      watermark: {
-        visible: false,
-      },
-      crosshair: {
-        horzLine: {
-          visible: true,
-          labelVisible: true,
-        },
-        vertLine: {
-          visible: true,
-          labelVisible: true,
-        },
-      },
-      handleScroll: false,
-      handleScale: {
-        mouseWheel: false,
-      },
-      title: {
-        visible: false,
+      timeScale: {
+        borderVisible: false,
       },
     });
 
-    // Create the candlestick series
+    chartRef.current = chart;
+
+    // Add candlestick series
     const candlestickSeries = chart.addCandlestickSeries({
       upColor: 'rgb(75, 192, 192)',
       downColor: 'rgb(255, 99, 132)',
@@ -82,9 +81,9 @@ export default function CandlestickChart({
       wickDownColor: 'rgb(255, 99, 132)',
     });
 
-    // Format the data for the chart
-    const formattedData = liveData.map((candle) => ({
-      time: candle.time / 1000 as Time, // Convert milliseconds to seconds
+    // Format and set data
+    const formattedData = data.map(candle => ({
+      time: candle.time / 1000 as Time,
       open: candle.open,
       high: candle.high,
       low: candle.low,
@@ -92,14 +91,9 @@ export default function CandlestickChart({
     }));
 
     candlestickSeries.setData(formattedData);
-    candlestickSeriesRef.current = candlestickSeries;
 
-    // Add trendlines and notify parent
-    const trendlines = findTrendlines(liveData);
-    if (onTrendlinesUpdate) {
-      onTrendlinesUpdate(trendlines);
-    }
-    trendlines.forEach((trendline) => {
+    // Add trendlines
+    trendlines.forEach(trendline => {
       const lineSeries = chart.addLineSeries({
         color: trendline.type === 'support' ? 'rgb(75, 192, 192)' : 'rgb(255, 99, 132)',
         lineWidth: 2,
@@ -108,77 +102,50 @@ export default function CandlestickChart({
         priceLineVisible: false,
       });
 
-      // Create line with just start and end points
-      const lineData = [
-        { time: trendline.start.time / 1000 as Time, value: trendline.start.price },
-        { time: trendline.end.time / 1000 as Time, value: trendline.end.price }
-      ];
-
-      lineSeries.setData(lineData);
+      lineSeries.setData([
+        { 
+          time: trendline.start.time / 1000 as Time, 
+          value: trendline.start.price 
+        },
+        { 
+          time: trendline.end.time / 1000 as Time, 
+          value: trendline.end.price 
+        }
+      ]);
     });
 
-    // Fit the chart to the data
+    // Fit content
     chart.timeScale().fitContent();
 
     // Handle resize
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ 
+          width: chartContainerRef.current.clientWidth 
+        });
       }
     };
 
     window.addEventListener('resize', handleResize);
 
-    // Store chart reference for cleanup
-    chartRef.current = chart;
-
     return () => {
       window.removeEventListener('resize', handleResize);
-      chart.remove();
+      // Proper cleanup of chart
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+      }
     };
-  }, [isLoading, liveData, onTrendlinesUpdate]);
+  }, [data, trendlines]); // Include both data and trendlines as dependencies
 
-  const handleCandleUpdate = useCallback((wsCandle: WsCandle) => {
-    if (!candlestickSeriesRef.current) return;
+  const isLoading = propsLoading || dataLoading;
 
-    const newCandle: CandlestickData = {
-      time: wsCandle.t / 1000 as Time,
-      open: parseFloat(wsCandle.o),
-      high: parseFloat(wsCandle.h),
-      low: parseFloat(wsCandle.l),
-      close: parseFloat(wsCandle.c)
-    };
-
-    candlestickSeriesRef.current.update(newCandle);
-  }, []);
-
-  useEffect(() => {
-    if (!liveData.length) return;
-    
-    // Update the chart with the latest candle
-    const lastCandle = liveData[liveData.length - 1];
-    handleCandleUpdate({
-      t: lastCandle.time,
-      s: coin,
-      i: '5m',
-      o: lastCandle.open.toString(),
-      h: lastCandle.high.toString(),
-      l: lastCandle.low.toString(),
-      c: lastCandle.close.toString(),
-      v: '0',
-      n: 0,
-      T: 0
-    });
-
-    // Update trendlines
-    if (onTrendlinesUpdate) {
-      const newTrendlines = findTrendlines(liveData);
-      onTrendlinesUpdate(newTrendlines);
-    }
-  }, [liveData, handleCandleUpdate, coin, onTrendlinesUpdate]);
-
-  if (isLoading || liveDataLoading) {
-    return <div className="w-full h-[300px] flex items-center justify-center">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
