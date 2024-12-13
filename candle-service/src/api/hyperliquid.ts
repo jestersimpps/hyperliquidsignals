@@ -1,20 +1,27 @@
 import axios from 'axios';
 
 export class HyperliquidAPI {
-  private baseUrl = 'https://api.hyperliquid.xyz';
+  private baseUrl = 'https://api.hyperliquid.xyz/info';
 
-  async getCandles(coin: string, interval: string): Promise<any[]> {
+  private async post(endpoint: string, data: any): Promise<any> {
     try {
-      const response = await axios.get(`${this.baseUrl}/info/candles`, {
-        params: {
-          coin,
-          interval
-        }
-      });
+      const response = await axios.post(endpoint, data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching candles:', error);
+      console.error('Error in API call:', error);
       throw error;
     }
+  }
+
+  async getCandles(coin: string, interval: string, startTime?: number, endTime?: number): Promise<any[]> {
+    return this.post(this.baseUrl, {
+      type: 'candleSnapshot',
+      req: {
+        coin,
+        interval,
+        startTime,
+        endTime
+      }
+    });
   }
 }
